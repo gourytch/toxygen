@@ -202,6 +202,7 @@ class MainWindow(QtGui.QMainWindow):
         self.callButton = QtGui.QPushButton(Form)
         self.callButton.setGeometry(QtCore.QRect(550, 30, 50, 50))
         self.callButton.setObjectName("callButton")
+        self.callButton.clicked.connect(self.call)
         pixmap = QtGui.QPixmap(curr_directory() + '/images/call.png')
         icon = QtGui.QIcon(pixmap)
         self.callButton.setIcon(icon)
@@ -306,7 +307,7 @@ class MainWindow(QtGui.QMainWindow):
         self.int_s.show()
 
     # -----------------------------------------------------------------------------------------------------------------
-    # Messages and file transfers
+    # Messages, calls and file transfers
     # -----------------------------------------------------------------------------------------------------------------
 
     def send_message(self):
@@ -324,6 +325,10 @@ class MainWindow(QtGui.QMainWindow):
         if self.profile.is_active_online():  # active friend exists and online
             self.sw = ScreenShotWindow()
             self.sw.show()
+
+    def call(self):
+        if self.profile.is_active_online():
+            pass
 
     # -----------------------------------------------------------------------------------------------------------------
     # Functions which called when user open context menu in friends list
