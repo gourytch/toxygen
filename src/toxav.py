@@ -54,8 +54,24 @@ class ToxAV(object):
         return ToxAV.libtoxcore.toxav_get_tox(self._toxav_pointer)
 
     # -----------------------------------------------------------------------------------------------------------------
-    # TODO A/V event loop
+    # A/V event loop
     # -----------------------------------------------------------------------------------------------------------------
+
+    def iteration_interval(self):
+        """
+        Returns the interval in milliseconds when the next toxav_iterate call should be. If no call is active at the
+        moment, this function returns 200.
+
+        :return: interval in milliseconds
+        """
+        return ToxAV.libtoxcore.toxav_iteration_interval(self._toxav_pointer)
+
+    def iterate(self):
+        """
+        Main loop for the session. This function needs to be called in intervals of toxav_iteration_interval()
+        milliseconds. It is best called in the separate thread from tox_iterate.
+        """
+        ToxAV.libtoxcore.toxav_iterate(self._toxav_pointer)
 
     # -----------------------------------------------------------------------------------------------------------------
     # TODO Call setup
