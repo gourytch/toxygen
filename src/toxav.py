@@ -1,4 +1,4 @@
-from ctypes import c_int, POINTER, c_void_p, addressof, ArgumentError
+from ctypes import c_int, POINTER, c_void_p, addressof, ArgumentError, c_uint32
 from libtoxcore import LibToxCore
 from toxav_enums import *
 
@@ -82,8 +82,33 @@ class ToxAV(object):
     # -----------------------------------------------------------------------------------------------------------------
 
     # -----------------------------------------------------------------------------------------------------------------
-    # TODO Call control
+    # Call control
     # -----------------------------------------------------------------------------------------------------------------
+
+    def call_control(self, friend_number, control):
+        """
+        Sends a call control command to a friend.
+
+        :param friend_number: The friend number of the friend this client is in a call with.
+        :param control: The control command to send.
+        :return: True on success.
+        """
+        toxav_err_call_control = c_int()
+        result = ToxAV.libtoxcore.toxav_call_control(self._toxav_pointer, c_uint32(friend_number), c_int(control),
+                                                     addressof(toxav_err_call_control))
+        toxav_err_call_control = toxav_err_call_control.value
+        if toxav_err_call_control == TOXAV_ERR_CALL_CONTROL['OK']:
+            return bool(result)
+        elif toxav_err_call_control == TOXAV_ERR_CALL_CONTROL['SYNC']:
+            raise RuntimeError('Synchronization error occurred.')
+        elif toxav_err_call_control == TOXAV_ERR_CALL_CONTROL['FRIEND_NOT_FOUND']:
+            raise ArgumentError('The friend_number passed did not designate a valid friend.')
+        elif toxav_err_call_control == TOXAV_ERR_CALL_CONTROL['FRIEND_NOT_IN_CALL']:
+            raise RuntimeError('This client is currently not in a call with the friend. Before the call is answered, '
+                               'only CANCEL is a valid control.')
+        elif toxav_err_call_control == TOXAV_ERR_CALL_CONTROL['INVALID_TRANSITION']:
+            raise RuntimeError('Happens if user tried to pause an already paused call or if trying to resume a call '
+                               'that is not paused.')
 
     # -----------------------------------------------------------------------------------------------------------------
     # TODO Controlling bit rates
