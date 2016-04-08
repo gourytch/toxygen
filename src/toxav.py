@@ -1,4 +1,4 @@
-from ctypes import c_int, POINTER, c_void_p, addressof, ArgumentError, c_uint32
+from ctypes import c_int, POINTER, c_void_p, addressof, ArgumentError, c_uint32, CFUNCTYPE
 from libtoxcore import LibToxCore
 from toxav_enums import *
 
@@ -34,6 +34,8 @@ class ToxAV(object):
                               'session.')
         elif toxav_err_new == TOXAV_ERR_NEW['MULTIPLE']:
             raise RuntimeError('Attempted to create a second session for the same Tox instance.')
+
+        self.call_state_cb = None
 
     def __del__(self):
         """
@@ -78,8 +80,26 @@ class ToxAV(object):
     # -----------------------------------------------------------------------------------------------------------------
 
     # -----------------------------------------------------------------------------------------------------------------
-    # TODO Call state graph
+    # Call state graph
     # -----------------------------------------------------------------------------------------------------------------
+
+    def callback_call_state(self, callback, user_data):
+        """
+        Set the callback for the `call_state` event. Pass None to unset.
+
+        :param callback: Python function.
+        The function for the call_state callback.
+
+        Should take pointer (c_void_p) to ToxAV object,
+        The friend number (c_uint32) for which the call state changed.
+        The bitmask of the new call state which is guaranteed to be different than the previous state. The state is set
+        to 0 when the call is paused. The bitmask represents all the activities currently performed by the friend.
+        pointer (c_void_p) to user_data
+        :param user_data: pointer (c_void_p) to user data
+        """
+        c_callback = CFUNCTYPE(None, c_void_p, c_uint32, c_uint32, c_void_p)
+        self.call_state_cb = c_callback(callback)
+        ToxAV.libtoxcore.toxav_callback_call_state(self._toxav_pointer, self.call_state_cb, user_data)
 
     # -----------------------------------------------------------------------------------------------------------------
     # Call control
