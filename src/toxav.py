@@ -1,4 +1,5 @@
-from ctypes import c_int, POINTER, c_void_p, addressof, ArgumentError, c_uint32
+from ctypes import c_int, POINTER, c_void_p, addressof, ArgumentError, c_uint32, CFUNCTYPE, c_size_t, c_uint8, c_uint16
+from ctypes import c_char_p
 from libtoxcore import LibToxCore
 from toxav_enums import *
 
@@ -34,6 +35,8 @@ class ToxAV(object):
                               'session.')
         elif toxav_err_new == TOXAV_ERR_NEW['MULTIPLE']:
             raise RuntimeError('Attempted to create a second session for the same Tox instance.')
+
+        self.call_state_cb = None
 
     def __del__(self):
         """
@@ -78,8 +81,26 @@ class ToxAV(object):
     # -----------------------------------------------------------------------------------------------------------------
 
     # -----------------------------------------------------------------------------------------------------------------
-    # TODO Call state graph
+    # Call state graph
     # -----------------------------------------------------------------------------------------------------------------
+
+    def callback_call_state(self, callback, user_data):
+        """
+        Set the callback for the `call_state` event. Pass None to unset.
+
+        :param callback: Python function.
+        The function for the call_state callback.
+
+        Should take pointer (c_void_p) to ToxAV object,
+        The friend number (c_uint32) for which the call state changed.
+        The bitmask of the new call state which is guaranteed to be different than the previous state. The state is set
+        to 0 when the call is paused. The bitmask represents all the activities currently performed by the friend.
+        pointer (c_void_p) to user_data
+        :param user_data: pointer (c_void_p) to user data
+        """
+        c_callback = CFUNCTYPE(None, c_void_p, c_uint32, c_uint32, c_void_p)
+        self.call_state_cb = c_callback(callback)
+        ToxAV.libtoxcore.toxav_callback_call_state(self._toxav_pointer, self.call_state_cb, user_data)
 
     # -----------------------------------------------------------------------------------------------------------------
     # Call control
@@ -115,8 +136,88 @@ class ToxAV(object):
     # -----------------------------------------------------------------------------------------------------------------
 
     # -----------------------------------------------------------------------------------------------------------------
-    # TODO A/V sending
+    # A/V sending
     # -----------------------------------------------------------------------------------------------------------------
+
+    def audio_send_frame(self, friend_number, pcm, sample_count, channels, sampling_rate):
+        """
+        Send an audio frame to a friend.
+
+        The expected format of the PCM data is: [s1c1][s1c2][...][s2c1][s2c2][...]...
+        Meaning: sample 1 for channel 1, sample 1 for channel 2, ...
+        For mono audio, this has no meaning, every sample is subsequent. For stereo, this means the expected format is
+        LRLRLR... with samples for left and right alternating.
+
+        :param friend_number: The friend number of the friend to which to send an audio frame.
+        :param pcm: An array of audio samples. The size of this array must be sample_count * channels.
+        :param sample_count: Number of samples in this frame. Valid numbers here are
+        ((sample rate) * (audio length) / 1000), where audio length can be 2.5, 5, 10, 20, 40 or 60 milliseconds.
+        :param channels: Number of audio channels. Supported values are 1 and 2.
+        :param sampling_rate: Audio sampling rate used in this frame. Valid sampling rates are 8000, 12000, 16000,
+        24000, or 48000.
+        """
+        toxav_err_send_frame = c_int()
+        result = ToxAV.libtoxcore.toxav_audio_send_frame(self._toxav_pointer, c_uint32(friend_number), c_void_p(pcm),
+                                                         c_size_t(sample_count), c_uint8(channels),
+                                                         c_uint32(sampling_rate), addressof(toxav_err_send_frame))
+        toxav_err_send_frame = toxav_err_send_frame.value
+        if toxav_err_send_frame == TOXAV_ERR_SEND_FRAME['OK']:
+            return bool(result)
+        elif toxav_err_send_frame == TOXAV_ERR_SEND_FRAME['NULL']:
+            raise ArgumentError('The samples data pointer was NULL.')
+        elif toxav_err_send_frame == TOXAV_ERR_SEND_FRAME['FRIEND_NOT_FOUND']:
+            raise ArgumentError('The friend_number passed did not designate a valid friend.')
+        elif toxav_err_send_frame == TOXAV_ERR_SEND_FRAME['FRIEND_NOT_IN_CALL']:
+            raise RuntimeError('This client is currently not in a call with the friend.')
+        elif toxav_err_send_frame == TOXAV_ERR_SEND_FRAME['SYNC']:
+            raise RuntimeError('Synchronization error occurred.')
+        elif toxav_err_send_frame == TOXAV_ERR_SEND_FRAME['INVALID']:
+            raise ArgumentError('One of the frame parameters was invalid. E.g. the resolution may be too small or too '
+                                'large, or the audio sampling rate may be unsupported.')
+        elif toxav_err_send_frame == TOXAV_ERR_SEND_FRAME['PAYLOAD_TYPE_DISABLED']:
+            raise RuntimeError('Either friend turned off audio or video receiving or we turned off sending for the said'
+                               'payload.')
+        elif toxav_err_send_frame == TOXAV_ERR_SEND_FRAME['RTP_FAILED']:
+            RuntimeError('Failed to push frame through rtp interface.')
+
+    def video_send_frame(self, friend_number, width, height, y, u, v):
+        """
+        Send a video frame to a friend.
+
+        Y - plane should be of size: height * width
+        U - plane should be of size: (height/2) * (width/2)
+        V - plane should be of size: (height/2) * (width/2)
+
+        :param friend_number: The friend number of the friend to which to send a video frame.
+        :param width: Width of the frame in pixels.
+        :param height: Height of the frame in pixels.
+        :param y: Y (Luminance) plane data.
+        :param u: U (Chroma) plane data.
+        :param v: V (Chroma) plane data.
+        """
+        toxav_err_send_frame = c_int()
+        result = ToxAV.libtoxcore.toxav_video_send_frame(self._toxav_pointer, c_uint32(friend_number), c_uint16(width),
+                                                         c_uint16(height), c_char_p(y), c_char_p(u), c_char_p(v),
+                                                         addressof(toxav_err_send_frame))
+        toxav_err_send_frame = toxav_err_send_frame.value
+        if toxav_err_send_frame == TOXAV_ERR_SEND_FRAME['OK']:
+            return bool(result)
+        elif toxav_err_send_frame == TOXAV_ERR_SEND_FRAME['NULL']:
+            raise ArgumentError('One of Y, U, or V was NULL.')
+        elif toxav_err_send_frame == TOXAV_ERR_SEND_FRAME['FRIEND_NOT_FOUND']:
+            raise ArgumentError('The friend_number passed did not designate a valid friend.')
+        elif toxav_err_send_frame == TOXAV_ERR_SEND_FRAME['FRIEND_NOT_IN_CALL']:
+            raise RuntimeError('This client is currently not in a call with the friend.')
+        elif toxav_err_send_frame == TOXAV_ERR_SEND_FRAME['SYNC']:
+            raise RuntimeError('Synchronization error occurred.')
+        elif toxav_err_send_frame == TOXAV_ERR_SEND_FRAME['INVALID']:
+            raise ArgumentError('One of the frame parameters was invalid. E.g. the resolution may be too small or too '
+                                'large, or the audio sampling rate may be unsupported.')
+        elif toxav_err_send_frame == TOXAV_ERR_SEND_FRAME['PAYLOAD_TYPE_DISABLED']:
+            raise RuntimeError('Either friend turned off audio or video receiving or we turned off sending for the said'
+                               'payload.')
+        elif toxav_err_send_frame == TOXAV_ERR_SEND_FRAME['RTP_FAILED']:
+            RuntimeError('Failed to push frame through rtp interface.')
 
     # -----------------------------------------------------------------------------------------------------------------
     # TODO A/V receiving
