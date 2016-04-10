@@ -277,6 +277,7 @@ class Profile(Contact, Singleton):
         self._messages = screen.messages
         self._tox = tox
         self._file_transfers = {}  # dict of file transfers. key - tuple (friend_number, file_number)
+        self._call = None  # active call
         settings = Settings.get_instance()
         self._show_online = settings['show_online_friends']
         screen.online_contacts.setChecked(self._show_online)
@@ -364,6 +365,7 @@ class Profile(Contact, Singleton):
         """
         :param value: number of new active friend in friend's list or None to update active user's data
         """
+        # TODO: check if call started
         if value is None and self._active_friend == -1:  # nothing to update
             return
         if value == self._active_friend:
@@ -898,6 +900,23 @@ class Profile(Contact, Singleton):
         super(Profile, self).set_avatar(data)
         for friend in filter(lambda x: x.status is not None, self._friends):
             self.send_avatar(friend.number)
+
+    # -----------------------------------------------------------------------------------------------------------------
+    # AV support
+    # -----------------------------------------------------------------------------------------------------------------
+
+    def call(self, audio):
+        if self._call is None:  # start call
+            friend_num = self.get_active_number()
+        else:  # finish or cancel call
+            self.stop_call(False)
+
+    def incoming_call(self, audio, friend_number):
+        pass
+
+    def stop_call(self, by_friend):
+        if not self._call:
+            return
 
 
 def tox_factory(data=None, settings=None):

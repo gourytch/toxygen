@@ -327,8 +327,8 @@ class MainWindow(QtGui.QMainWindow):
             self.sw.show()
 
     def call(self):
-        if self.profile.is_active_online():
-            pass
+        if self.profile.is_active_online():  # active friend exists and online
+            self.profile.call(True)
 
     # -----------------------------------------------------------------------------------------------------------------
     # Functions which called when user open context menu in friends list
