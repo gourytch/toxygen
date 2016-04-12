@@ -1,5 +1,5 @@
 from ctypes import c_int, POINTER, c_void_p, addressof, ArgumentError, c_uint32, CFUNCTYPE, c_size_t, c_uint8, c_uint16
-from ctypes import c_char_p
+from ctypes import c_char_p, c_int32
 from libtoxcore import LibToxCore
 from toxav_enums import *
 
@@ -37,6 +37,8 @@ class ToxAV(object):
             raise RuntimeError('Attempted to create a second session for the same Tox instance.')
 
         self.call_state_cb = None
+        self.audio_receive_frame_cb = None
+        self.video_receive_frame_cb = None
 
     def __del__(self):
         """
@@ -220,5 +222,59 @@ class ToxAV(object):
             RuntimeError('Failed to push frame through rtp interface.')
 
     # -----------------------------------------------------------------------------------------------------------------
-    # TODO A/V receiving
+    # A/V receiving
     # -----------------------------------------------------------------------------------------------------------------
+
+    def callback_audio_receive_frame(self, callback, user_data):
+        """
+        Set the callback for the `audio_receive_frame` event. Pass None to unset.
+
+        :param callback: Python function.
+        Function for the audio_receive_frame callback. The callback can be called multiple times per single
+        iteration depending on the amount of queued frames in the buffer. The received format is the same as in send
+        function.
+
+        Should take pointer (c_void_p) to ToxAV object,
+        The friend number (c_uint32) of the friend who sent an audio frame.
+        An array (c_void_p) of audio samples (sample_count * channels elements).
+        The number (c_size_t) of audio samples per channel in the PCM array.
+        Number (c_uint8) of audio channels.
+        Sampling rate (c_uint32) used in this frame.
+        pointer (c_void_p) to user_data
+        :param user_data: pointer (c_void_p) to user data
+        """
+        c_callback = CFUNCTYPE(None, c_void_p, c_uint32, c_void_p, c_size_t, c_uint8, c_uint32, c_void_p)
+        self.audio_receive_frame_cb = c_callback(callback)
+        ToxAV.libtoxcore.toxav_callback_audio_receive_frame(self._toxav_pointer, self.audio_receive_frame_cb, user_data)
+
+    def callback_video_receive_frame(self, callback, user_data):
+        """
+        Set the callback for the `video_receive_frame` event. Pass None to unset.
+
+        :param callback: Python function.
+        The function type for the video_receive_frame callback.
+
+        Should take
+        toxAV           pointer (c_void_p) to ToxAV object,
+        friend_number   The friend number (c_uint32) of the friend who sent a video frame.
+        width           Width (c_uint16) of the frame in pixels.
+        height          Height (c_uint16) of the frame in pixels.
+        y
+        u
+        v               Plane data (c_char_p).
+                            The size of plane data is derived from width and height where
+                            Y = MAX(width, abs(ystride)) * height,
+                            U = MAX(width/2, abs(ustride)) * (height/2) and
+                            V = MAX(width/2, abs(vstride)) * (height/2).
+        ystride
+        ustride
+        vstride         Strides data (c_int32). Strides represent padding for each plane that may or may not be present. You must
+                        handle strides in your image processing code. Strides are negative if the image is bottom-up
+                        hence why you MUST abs() it when calculating plane buffer size.
+        user_data       pointer (c_void_p) to user_data
+        :param user_data: pointer (c_void_p) to user data
+        """
+        c_callback = CFUNCTYPE(None, c_void_p, c_uint32, c_uint16, c_uint16, c_char_p, c_char_p, c_char_p, c_int32,
+                               c_int32, c_int32, c_void_p)
+        self.video_receive_frame_cb = c_callback(callback)
+        ToxAV.libtoxcore.toxav_callback_video_receive_frame(self._toxav_pointer, self.video_receive_frame_cb, user_data)
