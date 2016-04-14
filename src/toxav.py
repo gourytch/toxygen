@@ -1,5 +1,5 @@
 from ctypes import c_int, POINTER, c_void_p, addressof, ArgumentError, c_uint32, CFUNCTYPE, c_size_t, c_uint8, c_uint16
-from ctypes import c_char_p, c_int32
+from ctypes import c_char_p, c_int32, c_bool
 from libtoxcore import LibToxCore
 from toxav_enums import *
 
@@ -39,6 +39,7 @@ class ToxAV(object):
         self.call_state_cb = None
         self.audio_receive_frame_cb = None
         self.video_receive_frame_cb = None
+        self.call_cb = None
 
     def __del__(self):
         """
@@ -79,8 +80,89 @@ class ToxAV(object):
         ToxAV.libtoxcore.toxav_iterate(self._toxav_pointer)
 
     # -----------------------------------------------------------------------------------------------------------------
-    # TODO Call setup
+    # Call setup
     # -----------------------------------------------------------------------------------------------------------------
+
+    def call(self, friend_number, audio_bit_rate, video_bit_rate):
+        """
+        Call a friend. This will start ringing the friend.
+
+        It is the client's responsibility to stop ringing after a certain timeout, if such behaviour is desired. If the
+        client does not stop ringing, the library will not stop until the friend is disconnected. Audio and video
+        receiving are both enabled by default.
+
+        :param friend_number: The friend number of the friend that should be called.
+        :param audio_bit_rate: Audio bit rate in Kb/sec. Set this to 0 to disable audio sending.
+        :param video_bit_rate: Video bit rate in Kb/sec. Set this to 0 to disable video sending.
+        :return: True on success.
+        """
+        toxav_err_call = c_int()
+        result = ToxAV.libtoxcore.toxav_call(self._toxav_pointer, c_uint32(friend_number), c_uint32(audio_bit_rate),
+                                             c_uint32(video_bit_rate), addressof(toxav_err_call))
+        toxav_err_call = toxav_err_call.value
+        if toxav_err_call == TOXAV_ERR_CALL['OK']:
+            return bool(result)
+        elif toxav_err_call == TOXAV_ERR_CALL['MALLOC']:
+            raise MemoryError('A resource allocation error occurred while trying to create the structures required for '
+                              'the call.')
+        elif toxav_err_call == TOXAV_ERR_CALL['SYNC']:
+            raise RuntimeError('Synchronization error occurred.')
+        elif toxav_err_call == TOXAV_ERR_CALL['FRIEND_NOT_FOUND']:
+            raise ArgumentError('The friend number did not designate a valid friend.')
+        elif toxav_err_call == TOXAV_ERR_CALL['FRIEND_NOT_CONNECTED']:
+            raise ArgumentError('The friend was valid, but not currently connected.')
+        elif toxav_err_call == TOXAV_ERR_CALL['FRIEND_ALREADY_IN_CALL']:
+            raise ArgumentError('Attempted to call a friend while already in an audio or video call with them.')
+        elif toxav_err_call == TOXAV_ERR_CALL['INVALID_BIT_RATE']:
+            raise ArgumentError('Audio or video bit rate is invalid.')
+
+    def callback_call(self, callback, user_data):
+        """
+        Set the callback for the `call` event. Pass None to unset.
+
+        :param callback: The function for the call callback.
+
+        Should take pointer (c_void_p) to ToxAV object,
+        The friend number (c_uint32) from which the call is incoming.
+        True (c_bool) if friend is sending audio.
+        True (c_bool) if friend is sending video.
+        pointer (c_void_p) to user_data
+        :param user_data: pointer (c_void_p) to user data
+        """
+        c_callback = CFUNCTYPE(None, c_void_p, c_uint32, c_bool, c_bool, c_void_p)
+        self.call_cb = c_callback(callback)
+        ToxAV.libtoxcore.toxav_callback_call(self._toxav_pointer, self.call_cb, user_data)
+
+    def answer(self, friend_number, audio_bit_rate, video_bit_rate):
+        """
+        Accept an incoming call.
+
+        If answering fails for any reason, the call will still be pending and it is possible to try and answer it later.
+        Audio and video receiving are both enabled by default.
+
+        :param friend_number: The friend number of the friend that is calling.
+        :param audio_bit_rate: Audio bit rate in Kb/sec. Set this to 0 to disable audio sending.
+        :param video_bit_rate: Video bit rate in Kb/sec. Set this to 0 to disable video sending.
+        :return: True on success.
+        """
+        toxav_err_answer = c_int()
+        result = ToxAV.libtoxcore.toxav_answer(self._toxav_pointer, c_uint32(friend_number), c_uint32(audio_bit_rate),
+                                               c_uint32(video_bit_rate), addressof(toxav_err_answer))
+        toxav_err_answer = toxav_err_answer.value
+        if toxav_err_answer == TOXAV_ERR_ANSWER['OK']:
+            return bool(result)
+        elif toxav_err_answer == TOXAV_ERR_ANSWER['SYNC']:
+            raise RuntimeError('Synchronization error occurred.')
+        elif toxav_err_answer == TOXAV_ERR_ANSWER['CODEC_INITIALIZATION']:
+            raise RuntimeError('Failed to initialize codecs for call session. Note that codec initiation will fail if '
+                               'there is no receive callback registered for either audio or video.')
+        elif toxav_err_answer == TOXAV_ERR_ANSWER['FRIEND_NOT_FOUND']:
+            raise ArgumentError('The friend number did not designate a valid friend.')
+        elif toxav_err_answer == TOXAV_ERR_ANSWER['FRIEND_NOT_CALLING']:
+            raise ArgumentError('The friend was valid, but they are not currently trying to initiate a call. This is '
+                                'also returned if this client is already in a call with the friend.')
+        elif toxav_err_answer == TOXAV_ERR_ANSWER['INVALID_BIT_RATE']:
+            raise ArgumentError('Audio or video bit rate is invalid.')
 
     # -----------------------------------------------------------------------------------------------------------------
     # Call state graph
