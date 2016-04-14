@@ -2,6 +2,7 @@
 from ctypes import c_char_p, Structure, c_bool, addressof, c_int, c_size_t, POINTER, c_uint16, c_void_p, c_uint64
 from ctypes import create_string_buffer, ArgumentError, CFUNCTYPE, c_uint32, sizeof, c_uint8
 from toxcore_enums_and_consts import *
+from toxav import ToxAV
 from libtoxcore import LibToxCore
 
 
@@ -88,6 +89,8 @@ class Tox(object):
             self.file_chunk_request_cb = None
             self.file_recv_cb = None
             self.file_recv_chunk_cb = None
+
+            self.AV = ToxAV(self._tox_pointer)
 
     def __del__(self):
         Tox.libtoxcore.tox_kill(self._tox_pointer)
