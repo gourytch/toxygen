@@ -15,7 +15,7 @@ class Toxygen(object):
 
     def __init__(self):
         super(Toxygen, self).__init__()
-        self.tox = self.ms = self.init = self.mainloop = None
+        self.tox = self.ms = self.init = self.mainloop = self.avloop = None
 
     def main(self):
         """
@@ -125,15 +125,19 @@ class Toxygen(object):
         self.init = self.InitThread(self.tox, self.ms, self.tray)
         self.init.start()
 
-        # starting thread for tox iterate
+        # starting threads for tox iterate and toxav iterate
         self.mainloop = self.ToxIterateThread(self.tox)
         self.mainloop.start()
+        self.avloop = self.ToxAVIterateThread(self.tox.AV)
+        self.avloop.start()
         app.connect(app, QtCore.SIGNAL("lastWindowClosed()"), app, QtCore.SLOT("quit()"))
         app.exec_()
         self.init.stop = True
         self.mainloop.stop = True
+        self.avloop.stop = True
         self.mainloop.wait()
         self.init.wait()
+        self.avloop.wait()
         data = self.tox.get_savedata()
         ProfileHelper.save_profile(data)
         if deactivate:
@@ -147,8 +151,10 @@ class Toxygen(object):
         """
         self.mainloop.stop = True
         self.init.stop = True
+        self.avloop.stop = True
         self.mainloop.wait()
         self.init.wait()
+        self.avloop.wait()
         data = self.tox.get_savedata()
         ProfileHelper.save_profile(data)
         del self.tox
@@ -158,9 +164,12 @@ class Toxygen(object):
         self.init = self.InitThread(self.tox, self.ms, self.tray)
         self.init.start()
 
-        # starting thread for tox iterate
+        # starting threads for tox iterate and toxav iterate
         self.mainloop = self.ToxIterateThread(self.tox)
         self.mainloop.start()
+
+        self.avloop = self.ToxAVIterateThread(self.tox.AV)
+        self.avloop.start()
         return self.tox
 
     # -----------------------------------------------------------------------------------------------------------------
@@ -211,6 +220,18 @@ class Toxygen(object):
             while not self.stop:
                 self.tox.iterate()
                 self.msleep(self.tox.iteration_interval())
+
+    class ToxAVIterateThread(QtCore.QThread):
+
+        def __init__(self, toxav):
+            QtCore.QThread.__init__(self)
+            self.toxav = toxav
+            self.stop = False
+
+        def run(self):
+            while not self.stop:
+                self.toxav.iterate()
+                self.msleep(self.toxav.iteration_interval())
 
     class Login(object):
 
