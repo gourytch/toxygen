@@ -3,7 +3,7 @@ from ctypes import c_char_p, Structure, c_bool, addressof, c_int, c_size_t, POIN
 from ctypes import create_string_buffer, ArgumentError, CFUNCTYPE, c_uint32, sizeof, c_uint8
 from toxcore_enums_and_consts import *
 from toxav import ToxAV
-from libtoxcore import LibToxCore
+from libtox import LibToxCore
 
 
 class ToxOptions(Structure):
