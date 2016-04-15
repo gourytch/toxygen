@@ -908,15 +908,20 @@ class Profile(Contact, Singleton):
     def call(self, audio):
         if self._call is None:  # start call
             friend_num = self.get_active_number()
-        else:  # finish or cancel call
+            self._screen.active_call()
+        else:  # finish or cancel call if you call with active friend
             self.stop_call(False)
 
-    def incoming_call(self, audio, friend_number):
-        pass
+    def incoming_call(self, audio, video, friend_number):
+        if friend_number == self.get_active_number():
+            self._screen.incoming_call()
+        else:
+            self.get_friend_by_number(friend_number).set_messages(True)
 
     def stop_call(self, by_friend):
         if not self._call:
             return
+        self._screen.call_finished()
 
 
 def tox_factory(data=None, settings=None):

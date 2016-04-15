@@ -203,10 +203,7 @@ class MainWindow(QtGui.QMainWindow):
         self.callButton.setGeometry(QtCore.QRect(550, 30, 50, 50))
         self.callButton.setObjectName("callButton")
         self.callButton.clicked.connect(self.call)
-        pixmap = QtGui.QPixmap(curr_directory() + '/images/call.png')
-        icon = QtGui.QIcon(pixmap)
-        self.callButton.setIcon(icon)
-        self.callButton.setIconSize(QtCore.QSize(50, 50))
+        self.update_call_state('call')
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def setup_left_center(self, widget):
@@ -329,6 +326,21 @@ class MainWindow(QtGui.QMainWindow):
     def call(self):
         if self.profile.is_active_online():  # active friend exists and online
             self.profile.call(True)
+
+    def active_call(self):
+        self.update_call_state('finish_call')
+
+    def incoming_call(self):
+        self.update_call_state('incoming_call')
+
+    def call_finished(self):
+        self.update_call_state('call')
+
+    def update_call_state(self, fl):
+        pixmap = QtGui.QPixmap(curr_directory() + '/images/{}.png'.format(fl))
+        icon = QtGui.QIcon(pixmap)
+        self.callButton.setIcon(icon)
+        self.callButton.setIconSize(QtCore.QSize(50, 50))
 
     # -----------------------------------------------------------------------------------------------------------------
     # Functions which called when user open context menu in friends list

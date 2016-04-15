@@ -197,6 +197,20 @@ def file_recv_control(tox, friend_number, file_number, file_control, user_data):
     if file_control == TOX_FILE_CONTROL['CANCEL']:
         Profile.get_instance().cancel_transfer(friend_number, file_number, True)
 
+
+# -----------------------------------------------------------------------------------------------------------------
+# Callbacks - audio
+# -----------------------------------------------------------------------------------------------------------------
+
+def call_state(toxav, friend_number, mask, user_data):
+    print friend_number, mask
+
+
+def call(toxav, friend_number, audio, video, user_data):
+    print friend_number, audio, video
+    invoke_in_main_thread(Profile.get_instance().incoming_call, audio, video, friend_number)
+
+
 # -----------------------------------------------------------------------------------------------------------------
 # Callbacks - initialization
 # -----------------------------------------------------------------------------------------------------------------
@@ -222,3 +236,8 @@ def init_callbacks(tox, window, tray):
     tox.callback_file_recv_chunk(file_recv_chunk, 0)
     tox.callback_file_chunk_request(file_chunk_request, 0)
     tox.callback_file_recv_control(file_recv_control, 0)
+
+    toxav = tox.AV
+    toxav.callback_call_state(call_state, 0)
+    toxav.callback_call(call, 0)
+
