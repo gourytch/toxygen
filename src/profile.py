@@ -11,6 +11,7 @@ from tox_dns import tox_dns
 from history import *
 from file_transfers import *
 import time
+import calls
 
 
 class Contact(object):
@@ -277,7 +278,7 @@ class Profile(Contact, Singleton):
         self._messages = screen.messages
         self._tox = tox
         self._file_transfers = {}  # dict of file transfers. key - tuple (friend_number, file_number)
-        self._call = None  # active call
+        self._call = calls.AV(tox)  # data about calls
         settings = Settings.get_instance()
         self._show_online = settings['show_online_friends']
         screen.online_contacts.setChecked(self._show_online)
@@ -905,16 +906,24 @@ class Profile(Contact, Singleton):
     # AV support
     # -----------------------------------------------------------------------------------------------------------------
 
+    def get_call(self):
+        return self._call
+
+    call_data = property(get_call)
+
     def call(self, audio):
-        if self._call is None:  # start call
-            friend_num = self.get_active_number()
+        num = self.get_active_number()
+        if num not in self._call:  # start call
+            self._call(num)
             self._screen.active_call()
         else:  # finish or cancel call if you call with active friend
             self.stop_call(False)
 
     def incoming_call(self, audio, video, friend_number):
+        # TODO: show window on call
         if friend_number == self.get_active_number():
             self._screen.incoming_call()
+            self._call.toxav_call_cb(friend_number, audio, video)
         else:
             self.get_friend_by_number(friend_number).set_messages(True)
 

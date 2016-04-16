@@ -1,5 +1,5 @@
 from ctypes import c_int, POINTER, c_void_p, addressof, ArgumentError, c_uint32, CFUNCTYPE, c_size_t, c_uint8, c_uint16
-from ctypes import c_char_p, c_int32, c_bool
+from ctypes import c_char_p, c_int32, c_bool, cast
 from libtox import LibToxAV
 from toxav_enums import *
 
@@ -236,12 +236,13 @@ class ToxAV(object):
         :param pcm: An array of audio samples. The size of this array must be sample_count * channels.
         :param sample_count: Number of samples in this frame. Valid numbers here are
         ((sample rate) * (audio length) / 1000), where audio length can be 2.5, 5, 10, 20, 40 or 60 milliseconds.
-        :param channels: Number of audio channels. Supported values are 1 and 2.
+        :param channels: Number of audio channels. Sulpported values are 1 and 2.
         :param sampling_rate: Audio sampling rate used in this frame. Valid sampling rates are 8000, 12000, 16000,
         24000, or 48000.
         """
         toxav_err_send_frame = c_int()
-        result = ToxAV.libtoxav.toxav_audio_send_frame(self._toxav_pointer, c_uint32(friend_number), c_void_p(pcm),
+        result = ToxAV.libtoxav.toxav_audio_send_frame(self._toxav_pointer, c_uint32(friend_number),
+                                                       cast(pcm, c_void_p),
                                                        c_size_t(sample_count), c_uint8(channels),
                                                        c_uint32(sampling_rate), addressof(toxav_err_send_frame))
         toxav_err_send_frame = toxav_err_send_frame.value

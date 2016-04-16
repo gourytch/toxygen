@@ -211,6 +211,11 @@ def call(toxav, friend_number, audio, video, user_data):
     invoke_in_main_thread(Profile.get_instance().incoming_call, audio, video, friend_number)
 
 
+def callback_audio(toxav, friend_number, samples, audio_samples_per_channel, audio_channels_count, rate, user_data):
+    # TODO: play audio
+    pass
+
+
 # -----------------------------------------------------------------------------------------------------------------
 # Callbacks - initialization
 # -----------------------------------------------------------------------------------------------------------------
@@ -240,4 +245,5 @@ def init_callbacks(tox, window, tray):
     toxav = tox.AV
     toxav.callback_call_state(call_state, 0)
     toxav.callback_call(call, 0)
+    toxav.callback_audio_receive_frame(callback_audio, 0)
 
