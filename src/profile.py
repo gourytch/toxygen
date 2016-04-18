@@ -912,6 +912,8 @@ class Profile(Contact, Singleton):
 
     call_data = property(get_call)
 
+    # TODO: move to calls.py?
+
     def call(self, audio):
         num = self.get_active_number()
         if num not in self._call:  # start call

@@ -11,6 +11,13 @@ CALL_TYPE = {
 }
 
 
+class Call(object):
+
+    def __init__(self, audio, video):
+        self.audio, self.video = audio, video
+        self.widget = None
+
+
 class AV(object):
 
     def __init__(self, tox):
@@ -32,18 +39,22 @@ class AV(object):
         self._calls[friend_number] = CALL_TYPE['AUDIO']
         self.start_audio_thread()
 
-    def stop(self):
+    def finish_call(self, friend_number, by_friend=False):
+        if not by_friend:
+            self._toxav.call_control(friend_number, TOXAV_CALL_CONTROL['CANCEL'])
+        del self._calls[friend_number]
+        if not len(self._calls):
+            self.stop_audio_thread()
 
+    def stop(self):
         self._running = False
         self.stop_audio_thread()
 
     def start_audio_thread(self):
-
         if self._audio_thread is not None:
             return
 
         self._audio_running = True
-
         self._audio_rate = 8000
         self._audio_channels = 1
         self._audio_duration = 60
@@ -94,7 +105,7 @@ class AV(object):
                 pcm = self._audio_stream.read(self._audio_sample_count)
                 if pcm:
                     for friend in self._calls:
-                        if self._calls[friend] & 1:
+                        if self._calls[friend] & 1:  # TODO: check if call started or play default sound
                             try:
                                 self._toxav.audio_send_frame(friend, pcm, self._audio_sample_count,
                                                              self._audio_channels, self._audio_rate)
@@ -109,9 +120,7 @@ class AV(object):
 
         if self._running:
             self._calls[friend_number] = int(video_enabled) * 2 + int(audio_enabled)
-
             self._toxav.answer(friend_number, 32, 5000)
-
             self.start_audio_thread()
 
     def toxav_call_state_cb(self, friend_number, state):

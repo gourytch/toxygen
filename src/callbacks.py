@@ -203,15 +203,18 @@ def file_recv_control(tox, friend_number, file_number, file_control, user_data):
 # -----------------------------------------------------------------------------------------------------------------
 
 def call_state(toxav, friend_number, mask, user_data):
+    """New call state"""
     print friend_number, mask
 
 
 def call(toxav, friend_number, audio, video, user_data):
+    """Incoming call from friend"""
     print friend_number, audio, video
     invoke_in_main_thread(Profile.get_instance().incoming_call, audio, video, friend_number)
 
 
 def callback_audio(toxav, friend_number, samples, audio_samples_per_channel, audio_channels_count, rate, user_data):
+    """New audio chunk"""
     # TODO: play audio
     pass
 
