@@ -2,19 +2,7 @@ from PySide import QtCore, QtGui
 from settings import *
 from profile import Profile
 from util import get_style, curr_directory
-
-
-class CenteredWidget(QtGui.QWidget):
-    
-    def __init__(self):
-        super(CenteredWidget, self).__init__()
-        self.center()
-
-    def center(self):
-        qr = self.frameGeometry()
-        cp = QtGui.QDesktopWidget().availableGeometry().center()
-        qr.moveCenter(cp)
-        self.move(qr.topLeft())
+from widgets import CenteredWidget
 
 
 class AddContact(CenteredWidget):

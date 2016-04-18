@@ -12,6 +12,7 @@ from history import *
 from file_transfers import *
 import time
 import calls
+import avwidgets
 
 
 class Contact(object):
@@ -920,14 +921,24 @@ class Profile(Contact, Singleton):
             self.stop_call(False)
 
     def incoming_call(self, audio, video, friend_number):
-        # TODO: show window on call
+        friend = self.get_friend_by_number(friend_number)
         if friend_number == self.get_active_number():
             self._screen.incoming_call()
             self._call.toxav_call_cb(friend_number, audio, video)
         else:
-            self.get_friend_by_number(friend_number).set_messages(True)
+            friend.set_messages(True)
+        if video:
+            text = QtGui.QApplication.translate("incoming_call", "Incoming video call", None, QtGui.QApplication.UnicodeUTF8)
+        else:
+            text = QtGui.QApplication.translate("incoming_call", "Incoming audio call", None, QtGui.QApplication.UnicodeUTF8)
+        self._call_widget = avwidgets.IncomingCallWidget(friend_number, text, friend.name)
+        self._call_widget.set_pixmap(ProfileHelper.get_path() + 'avatars/{}.png'.format(friend.tox_id))
+        self._call_widget.show()
 
-    def stop_call(self, by_friend):
+    def start_call(self, friend_number, audio, video):
+        pass
+
+    def stop_call(self, friend_number, by_friend):
         if not self._call:
             return
         self._screen.call_finished()
