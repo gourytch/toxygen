@@ -267,6 +267,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def closeEvent(self, *args, **kwargs):
         self.profile.save_history()
+        self.profile.close()
 
     # -----------------------------------------------------------------------------------------------------------------
     # Functions which called when user click in menu

@@ -721,6 +721,10 @@ class Profile(Contact, Singleton):
         for friend in self._friends:
             friend.status = None
 
+    def close(self):
+        self._call.stop()
+        del self._call
+
     # -----------------------------------------------------------------------------------------------------------------
     # File transfers support
     # -----------------------------------------------------------------------------------------------------------------

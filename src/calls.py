@@ -12,7 +12,7 @@ CALL_TYPE = {
 
 
 class Call(object):
-
+    # use instead of bit mask?
     def __init__(self, audio, video):
         self.audio, self.video = audio, video
         self.widget = None
@@ -97,6 +97,14 @@ class AV(object):
         self._audio_thread = None
         self._audio_stream = None
         self._audio = None
+
+    def chunk(self, samples, samples_per_channel, channels_count, rate):
+        # use other pyaudio inst?
+        pya = self._audio
+        stream = pya.open(format=pya.get_format_from_width(width=2), channels=channels_count, rate=rate, output=True)
+        stream.write(samples)
+        stream.stop_stream()
+        stream.close()
 
     def audio_cb(self):
 
