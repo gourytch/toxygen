@@ -219,7 +219,7 @@ def callback_audio(toxav, friend_number, samples, audio_samples_per_channel, aud
     print audio_samples_per_channel, audio_channels_count, rate
     #return
     Profile.get_instance().call_data.chunk(
-        ''.join(chr(x) for x in samples[:audio_samples_per_channel * audio_channels_count]),
+        ''.join(chr(x) for x in samples[:audio_samples_per_channel * 2 * audio_channels_count]),
         audio_samples_per_channel,
         audio_channels_count,
         rate

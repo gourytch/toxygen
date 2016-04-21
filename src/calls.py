@@ -66,16 +66,6 @@ class AV(object):
         self._audio_device_index = self._audio.get_default_output_device_info()['index']
         print 'Index', self._audio_device_index
 
-        format_supported = self._audio.is_format_supported(self._audio_rate,
-                                                           self._audio_device_index,
-                                                           self._audio_channels,
-                                                           pyaudio.paInt16)
-
-        if not format_supported:
-            self._audio_running = False
-            del self._audio
-            return
-
         self._audio_stream = self._audio.open(format=pyaudio.paInt16,
                                               rate=self._audio_rate,
                                               channels=self._audio_channels,
@@ -106,7 +96,7 @@ class AV(object):
     def chunk(self, samples, samples_per_channel, channels_count, rate):
         # use other pyaudio inst?
         if self._out_stream is None:
-            self._out_stream = self._audio.open(format=pyaudio.paInt8,
+            self._out_stream = self._audio.open(format=pyaudio.paInt16,
                                                 channels=channels_count,
                                                 rate=rate,
                                                 output=True)
