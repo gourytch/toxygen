@@ -3,6 +3,7 @@ from settings import *
 from profile import Profile
 from util import get_style, curr_directory
 from widgets import CenteredWidget
+import pyaudio
 
 
 class AddContact(CenteredWidget):
@@ -406,3 +407,54 @@ class InterfaceSettings(CenteredWidget):
             app.installTranslator(app.translator)
         settings.save()
 
+
+class AudioSettings(CenteredWidget):
+
+    def __init__(self):
+        super(AudioSettings, self).__init__()
+        self.initUI()
+        self.retranslateUi()
+
+    def initUI(self):
+        self.setObjectName("audioSettingsForm")
+        self.resize(400, 150)
+        self.setMinimumSize(QtCore.QSize(400, 150))
+        self.setMaximumSize(QtCore.QSize(400, 150))
+        self.in_label = QtGui.QLabel(self)
+        self.in_label.setGeometry(QtCore.QRect(25, 5, 350, 20))
+        self.out_label = QtGui.QLabel(self)
+        self.out_label.setGeometry(QtCore.QRect(25, 65, 350, 20))
+        font = QtGui.QFont()
+        font.setPointSize(16)
+        font.setBold(True)
+        self.in_label.setFont(font)
+        self.out_label.setFont(font)
+        self.input = QtGui.QComboBox(self)
+        self.input.setGeometry(QtCore.QRect(25, 30, 350, 30))
+        self.output = QtGui.QComboBox(self)
+        self.output.setGeometry(QtCore.QRect(25, 90, 350, 30))
+        p = pyaudio.PyAudio()
+        settings = Settings.get_instance()
+        self.in_indexes, self.out_indexes = [], []
+        for i in xrange(p.get_device_count()):
+            device = p.get_device_info_by_index(i)
+            if device["maxInputChannels"]:
+                self.input.addItem(unicode(device["name"]))
+                self.in_indexes.append(i)
+            if device["maxOutputChannels"]:
+                self.output.addItem(unicode(device["name"]))
+                self.out_indexes.append(i)
+        self.input.setCurrentIndex(settings.audio['input'])
+        self.output.setCurrentIndex(settings.audio['output'])
+        QtCore.QMetaObject.connectSlotsByName(self)
+
+    def retranslateUi(self):
+        self.setWindowTitle(QtGui.QApplication.translate("audioSettingsForm", "Audio settings", None, QtGui.QApplication.UnicodeUTF8))
+        self.in_label.setText(QtGui.QApplication.translate("audioSettingsForm", "Input device:", None, QtGui.QApplication.UnicodeUTF8))
+        self.out_label.setText(QtGui.QApplication.translate("audioSettingsForm", "Output device:", None, QtGui.QApplication.UnicodeUTF8))
+
+    def closeEvent(self, event):
+        settings = Settings.get_instance()
+        settings.audio['input'] = self.in_indexes[self.input.currentIndex()]
+        settings.audio['output'] = self.out_indexes[self.output.currentIndex()]
+        settings.save()

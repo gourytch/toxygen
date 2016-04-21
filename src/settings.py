@@ -17,6 +17,7 @@ class Settings(Singleton, dict):
         else:
             super(self.__class__, self).__init__(Settings.get_default_settings())
             self.save()
+        self.audio = {'input': 0, 'output': 0}
 
     @staticmethod
     def get_auto_profile():

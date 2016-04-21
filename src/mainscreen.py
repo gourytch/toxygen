@@ -60,12 +60,14 @@ class MainWindow(QtGui.QMainWindow):
         self.actionAbout_program.setObjectName("actionAbout_program")
         self.actionSettings = QtGui.QAction(MainWindow)
         self.actionSettings.setObjectName("actionSettings")
+        self.audioSettings = QtGui.QAction(MainWindow)
         self.menuProfile.addAction(self.actionAdd_friend)
         self.menuProfile.addAction(self.actionSettings)
         self.menuSettings.addAction(self.actionPrivacy_settings)
         self.menuSettings.addAction(self.actionInterface_settings)
         self.menuSettings.addAction(self.actionNotifications)
         self.menuSettings.addAction(self.actionNetwork)
+        self.menuSettings.addAction(self.audioSettings)
         self.menuAbout.addAction(self.actionAbout_program)
         self.menubar.addAction(self.menuProfile.menuAction())
         self.menubar.addAction(self.menuSettings.menuAction())
@@ -78,6 +80,7 @@ class MainWindow(QtGui.QMainWindow):
         self.actionPrivacy_settings.triggered.connect(self.privacy_settings)
         self.actionInterface_settings.triggered.connect(self.interface_settings)
         self.actionNotifications.triggered.connect(self.notification_settings)
+        self.audioSettings.triggered.connect(self.audio_settings)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def languageChange(self, *args, **kwargs):
@@ -96,6 +99,7 @@ class MainWindow(QtGui.QMainWindow):
         self.actionNetwork.setText(QtGui.QApplication.translate("MainWindow", "Network", None, QtGui.QApplication.UnicodeUTF8))
         self.actionAbout_program.setText(QtGui.QApplication.translate("MainWindow", "About program", None, QtGui.QApplication.UnicodeUTF8))
         self.actionSettings.setText(QtGui.QApplication.translate("MainWindow", "Settings", None, QtGui.QApplication.UnicodeUTF8))
+        self.audioSettings.setText(QtGui.QApplication.translate("MainWindow", "Audio", None, QtGui.QApplication.UnicodeUTF8))
 
     def setup_right_bottom(self, Form):
         Form.setObjectName("right_bottom")
@@ -303,6 +307,10 @@ class MainWindow(QtGui.QMainWindow):
     def interface_settings(self):
         self.int_s = InterfaceSettings()
         self.int_s.show()
+
+    def audio_settings(self):
+        self.audio_s = AudioSettings()
+        self.audio_s.show()
 
     # -----------------------------------------------------------------------------------------------------------------
     # Messages, calls and file transfers

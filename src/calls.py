@@ -1,6 +1,7 @@
 import pyaudio
 import time
 import threading
+import settings
 from util import log
 from toxav_enums import *
 
@@ -62,15 +63,15 @@ class AV(object):
         self._audio_sample_count = self._audio_rate * self._audio_channels * self._audio_duration / 1000
 
         self._audio = pyaudio.PyAudio()
-
-        self._audio_device_index = self._audio.get_default_output_device_info()['index']
-        print 'Index', self._audio_device_index
+        s = settings.Settings().get_instance().audio
+        #self._audio_device_index = self._audio.get_default_output_device_info()['index']
+        #print 'Index', self._audio_device_index
 
         self._audio_stream = self._audio.open(format=pyaudio.paInt16,
                                               rate=self._audio_rate,
                                               channels=self._audio_channels,
                                               input=True,
-                                              input_device_index=self._audio_device_index,
+                                              input_device_index=s['input'],
                                               frames_per_buffer=self._audio_sample_count * 10)
 
         self._audio_thread = threading.Thread(target=self.audio_cb)
@@ -93,12 +94,13 @@ class AV(object):
         self._out_stream.close()
         self._out_stream = None
 
-    def chunk(self, samples, samples_per_channel, channels_count, rate):
-        # use other pyaudio inst?
+    def chunk(self, samples, channels_count, rate):
+
         if self._out_stream is None:
             self._out_stream = self._audio.open(format=pyaudio.paInt16,
                                                 channels=channels_count,
                                                 rate=rate,
+                                                output_device_index=settings.Settings().get_instance().audio['output'],
                                                 output=True)
         self._out_stream.write(samples)
 
