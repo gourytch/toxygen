@@ -30,6 +30,7 @@ class AV(object):
         self._audio_stream = None
         self._audio_thread = None
         self._audio_running = False
+        self._out_stream = None
 
     def __contains__(self, friend_number):
         return friend_number in self._calls
@@ -98,13 +99,18 @@ class AV(object):
         self._audio_stream = None
         self._audio = None
 
+        self._out_stream.stop_stream()
+        self._out_stream.close()
+        self._out_stream = None
+
     def chunk(self, samples, samples_per_channel, channels_count, rate):
         # use other pyaudio inst?
-        pya = self._audio
-        stream = pya.open(format=pya.get_format_from_width(width=2), channels=channels_count, rate=rate, output=True)
-        stream.write(samples)
-        stream.stop_stream()
-        stream.close()
+        if self._out_stream is None:
+            self._out_stream = self._audio.open(format=pyaudio.paInt8,
+                                                channels=channels_count,
+                                                rate=rate,
+                                                output=True)
+        self._out_stream.write(samples)
 
     def audio_cb(self):
 

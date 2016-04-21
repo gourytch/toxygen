@@ -319,14 +319,14 @@ class ToxAV(object):
 
         Should take pointer (c_void_p) to ToxAV object,
         The friend number (c_uint32) of the friend who sent an audio frame.
-        An array (c_void_p) of audio samples (sample_count * channels elements).
+        An array (c_uint8) of audio samples (sample_count * channels elements).
         The number (c_size_t) of audio samples per channel in the PCM array.
         Number (c_uint8) of audio channels.
         Sampling rate (c_uint32) used in this frame.
         pointer (c_void_p) to user_data
         :param user_data: pointer (c_void_p) to user data
         """
-        c_callback = CFUNCTYPE(None, c_void_p, c_uint32, c_void_p, c_size_t, c_uint8, c_uint32, c_void_p)
+        c_callback = CFUNCTYPE(None, c_void_p, c_uint32, POINTER(c_uint8), c_size_t, c_uint8, c_uint32, c_void_p)
         self.audio_receive_frame_cb = c_callback(callback)
         ToxAV.libtoxav.toxav_callback_audio_receive_frame(self._toxav_pointer, self.audio_receive_frame_cb, user_data)
 
