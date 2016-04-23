@@ -8,6 +8,7 @@ class IncomingCallWidget(widgets.CenteredWidget):
 
     def __init__(self, friend_number, text, name):
         super(IncomingCallWidget, self).__init__()
+        self.setWindowFlags(QtCore.Qt.CustomizeWindowHint | QtCore.Qt.WindowTitleHint | QtCore.Qt.WindowStaysOnTopHint)
         self.resize(QtCore.QSize(500, 270))
         self.avatar_label = QtGui.QLabel(self)
         self.avatar_label.setGeometry(QtCore.QRect(10, 20, 64, 64))
@@ -51,7 +52,5 @@ class IncomingCallWidget(widgets.CenteredWidget):
         # self.accept_video.clicked.connect(lambda: pr.start_call(friend_number, True, True))
         self.decline.clicked.connect(lambda: pr.stop_call(friend_number, False) or self.close())
 
-    def set_pixmap(self, path):
-        pixmap = QtGui.QPixmap(QtCore.QSize(64, 64))
-        pixmap.load(path)
-        self.avatar_label.setPixmap(pixmap.scaled(64, 64, QtCore.Qt.KeepAspectRatio))
+    def set_pixmap(self, pixmap):
+        self.avatar_label.setPixmap(pixmap)
