@@ -444,8 +444,8 @@ class AudioSettings(CenteredWidget):
             if device["maxOutputChannels"]:
                 self.output.addItem(unicode(device["name"]))
                 self.out_indexes.append(i)
-        self.input.setCurrentIndex(settings.audio['input'])
-        self.output.setCurrentIndex(settings.audio['output'])
+        self.input.setCurrentIndex(self.in_indexes.index(settings.audio['input']))
+        self.output.setCurrentIndex(self.out_indexes.index(settings.audio['output']))
         QtCore.QMetaObject.connectSlotsByName(self)
 
     def retranslateUi(self):
