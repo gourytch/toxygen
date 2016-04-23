@@ -334,7 +334,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def call(self):
         if self.profile.is_active_online():  # active friend exists and online
-            self.profile.call(True)
+            self.profile.call_click(True)
 
     def active_call(self):
         self.update_call_state('finish_call')

@@ -43,11 +43,11 @@ class IncomingCallWidget(widgets.CenteredWidget):
         self.accept_audio.setStyleSheet("QPushButton { border: none }")
         self.accept_video.setStyleSheet("QPushButton { border: none }")
         self.decline.setStyleSheet("QPushButton { border: none }")
-        self.setWindowTitle("Toxygen")
+        self.setWindowTitle(text)
         self.name.setText(name)
         self.call_type.setText(text)
         pr = profile.Profile.get_instance()
-        self.accept_audio.clicked.connect(lambda: pr.start_call(friend_number, True, False) or self.close())
+        self.accept_audio.clicked.connect(lambda: pr.accept_call(friend_number, True, False) or self.close())
         # self.accept_video.clicked.connect(lambda: pr.start_call(friend_number, True, True))
         self.decline.clicked.connect(lambda: pr.stop_call(friend_number, False) or self.close())
 
@@ -55,18 +55,3 @@ class IncomingCallWidget(widgets.CenteredWidget):
         pixmap = QtGui.QPixmap(QtCore.QSize(64, 64))
         pixmap.load(path)
         self.avatar_label.setPixmap(pixmap.scaled(64, 64, QtCore.Qt.KeepAspectRatio))
-
-if __name__ == '__main__':
-    import sys
-    from util import curr_directory
-    app = QtGui.QApplication(sys.argv)
-
-    with open(curr_directory() + '/styles/style.qss') as fl:
-        dark_style = fl.read()
-    app.setStyleSheet(dark_style)
-    window = IncomingCallWidget(0, 'Incoming audio call', 'Echobot')
-    window.pixmap = QtGui.QPixmap(QtCore.QSize(64, 64))
-    window.pixmap.load(curr_directory() + '/images/avatar')
-    window.avatar_label.setPixmap(window.pixmap.scaled(64, 64, QtCore.Qt.KeepAspectRatio))
-    window.show()
-    app.exec_()

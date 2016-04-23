@@ -279,7 +279,7 @@ class Profile(Contact, Singleton):
         self._messages = screen.messages
         self._tox = tox
         self._file_transfers = {}  # dict of file transfers. key - tuple (friend_number, file_number)
-        self._call = calls.AV(tox)  # data about calls
+        self._call = calls.AV(tox.AV)  # object with data about calls
         settings = Settings.get_instance()
         self._show_online = settings['show_online_friends']
         screen.online_contacts.setChecked(self._show_online)
@@ -367,7 +367,7 @@ class Profile(Contact, Singleton):
         """
         :param value: number of new active friend in friend's list or None to update active user's data
         """
-        # TODO: check if call started
+        # TODO: check if there is incoming call with friend
         if value is None and self._active_friend == -1:  # nothing to update
             return
         if value == self._active_friend:
@@ -402,6 +402,10 @@ class Profile(Contact, Singleton):
                             ft = self._file_transfers[(message.get_friend_number(), message.get_file_number())]
                             ft.set_state_changed_handler(item.update)
                 self._messages.scrollToBottom()
+                if value in self._call:
+                    self._screen.active_call()
+                else:
+                    self._screen.finish_call()
             else:
                 friend = self._friends[self._active_friend]
 
@@ -914,23 +918,22 @@ class Profile(Contact, Singleton):
     def get_call(self):
         return self._call
 
-    call_data = property(get_call)
+    call = property(get_call)
 
-    # TODO: move to calls.py?
-
-    def call(self, audio):
+    def call_click(self, audio=True, video=False):
+        """User clicked audio button in main window"""
         num = self.get_active_number()
-        if num not in self._call:  # start call
-            self._call(num)
+        if num not in self._call and self.is_active_online():  # start call
+            self._call(num, audio, video)
             self._screen.active_call()
         else:  # finish or cancel call if you call with active friend
-            self.stop_call(False)
+            self.stop_call(num, False)
 
     def incoming_call(self, audio, video, friend_number):
         friend = self.get_friend_by_number(friend_number)
         if friend_number == self.get_active_number():
             self._screen.incoming_call()
-            self._call.toxav_call_cb(friend_number, audio, video)
+            # self._call.toxav_call_cb(friend_number, audio, video)
         else:
             friend.set_messages(True)
         if video:
@@ -941,13 +944,13 @@ class Profile(Contact, Singleton):
         self._call_widget.set_pixmap(ProfileHelper.get_path() + 'avatars/{}.png'.format(friend.tox_id))
         self._call_widget.show()
 
-    def start_call(self, friend_number, audio, video):
-        pass
+    def accept_call(self, friend_number, audio, video):
+        self._call.accept_call(friend_number, audio, video)
+        self._screen.active_call()
 
     def stop_call(self, friend_number, by_friend):
-        if not self._call:
-            return
         self._screen.call_finished()
+        self._call.finish_call(friend_number, by_friend)  # finish or decline call
 
 
 def tox_factory(data=None, settings=None):
