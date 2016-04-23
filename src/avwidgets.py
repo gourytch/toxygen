@@ -2,6 +2,10 @@ from PySide import QtCore, QtGui
 import widgets
 import profile
 import util
+import pyaudio
+import wave
+import settings
+from util import curr_directory
 
 
 class IncomingCallWidget(widgets.CenteredWidget):
@@ -48,9 +52,55 @@ class IncomingCallWidget(widgets.CenteredWidget):
         self.name.setText(name)
         self.call_type.setText(text)
         pr = profile.Profile.get_instance()
-        self.accept_audio.clicked.connect(lambda: pr.accept_call(friend_number, True, False) or self.close())
+        self.accept_audio.clicked.connect(lambda: pr.accept_call(friend_number, True, False) or self.stop())
         # self.accept_video.clicked.connect(lambda: pr.start_call(friend_number, True, True))
-        self.decline.clicked.connect(lambda: pr.stop_call(friend_number, False) or self.close())
+        self.decline.clicked.connect(lambda: pr.stop_call(friend_number, False) or self.stop())
+
+        class SoundPlay(QtCore.QThread):
+
+            def __init__(self):
+                QtCore.QThread.__init__(self)
+
+            def run(self):
+                class AudioFile(object):
+                    chunk = 1024
+
+                    def __init__(self, fl):
+                        self.stop = False
+                        self.wf = wave.open(fl, 'rb')
+                        self.p = pyaudio.PyAudio()
+                        self.stream = self.p.open(
+                            format=self.p.get_format_from_width(self.wf.getsampwidth()),
+                            channels=self.wf.getnchannels(),
+                            rate=self.wf.getframerate(),
+                            output=True
+                        )
+
+                    def play(self):
+                        data = self.wf.readframes(self.chunk)
+                        while data and not self.stop:
+                            self.stream.write(data)
+                            data = self.wf.readframes(self.chunk)
+
+                    def close(self):
+                        self.stream.close()
+                        self.p.terminate()
+
+                self.a = AudioFile(curr_directory() + '/sounds/call.wav')
+                self.a.play()
+                self.a.close()
+
+        if settings.Settings.get_instance()['calls_sound']:
+            self.thread = SoundPlay()
+            self.thread.start()
+        else:
+            self.thread = None
+
+    def stop(self):
+        if self.thread is not None:
+            self.thread.a.stop = True
+            self.thread.wait()
+        self.close()
 
     def set_pixmap(self, pixmap):
         self.avatar_label.setPixmap(pixmap)

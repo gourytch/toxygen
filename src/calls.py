@@ -2,7 +2,6 @@ import pyaudio
 import time
 import threading
 import settings
-from util import log
 from toxav_enums import *
 # TODO: play sound until call will be started or cancelled
 
@@ -37,7 +36,7 @@ class AV(object):
 
     def __call__(self, friend_number, audio, video):
         """Call friend with specified number"""
-        self._toxav.call(friend_number, 32, 5000)
+        self._toxav.call(friend_number, 32 if audio else 0, 5000 if video else 0)
         self._calls[friend_number] = CALL_TYPE['AUDIO']
         self.start_audio_thread()
 
@@ -87,9 +86,10 @@ class AV(object):
         self._audio_stream = None
         self._audio = None
 
-        self._out_stream.stop_stream()
-        self._out_stream.close()
-        self._out_stream = None
+        if self._out_stream is not None:
+            self._out_stream.stop_stream()
+            self._out_stream.close()
+            self._out_stream = None
 
     def chunk(self, samples, channels_count, rate):
         """
@@ -118,10 +118,10 @@ class AV(object):
                             try:
                                 self._toxav.audio_send_frame(friend, pcm, self._audio_sample_count,
                                                              self._audio_channels, self._audio_rate)
-                            except Exception as ex:
-                                log('Audio_cb ex in send frame: ' + str(ex))
-            except Exception as ex:
-                log('Audio_cb ex in read: ' + str(ex))
+                            except:
+                                pass
+            except:
+                pass
 
             time.sleep(0.01)
 
@@ -129,7 +129,7 @@ class AV(object):
 
         if self._running:
             self._calls[friend_number] = int(video_enabled) * 2 + int(audio_enabled)
-            self._toxav.answer(friend_number, 32, 5000)
+            self._toxav.answer(friend_number, 32 if audio_enabled else 0, 5000 if video_enabled else 0)
             self.start_audio_thread()
 
     def toxav_call_state_cb(self, friend_number, state):
