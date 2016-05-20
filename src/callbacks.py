@@ -5,7 +5,7 @@ from profile import Profile
 from toxcore_enums_and_consts import *
 from toxav_enums import *
 from tox import bin_to_string
-from ctypes import c_char_p, cast, pointer
+from plugin_support import PluginLoader
 
 
 class InvokeEvent(QtCore.QEvent):
@@ -278,4 +278,8 @@ def init_callbacks(tox, window, tray):
     toxav.callback_call_state(call_state, 0)
     toxav.callback_call(call, 0)
     toxav.callback_audio_receive_frame(callback_audio, 0)
+
+    plugin = PluginLoader.get_instance()
+    tox.callback_friend_lossless_packet(plugin.callback_custom_packet(), 0)
+    tox.callback_friend_lossy_packet(plugin.callback_custom_packet(False), 0)
 

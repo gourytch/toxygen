@@ -5,6 +5,7 @@ from util import get_style, curr_directory
 from widgets import CenteredWidget, DataLabel
 import pyaudio
 import toxencryptsave
+import plugin_support
 
 
 class AddContact(CenteredWidget):
@@ -586,3 +587,52 @@ class AudioSettings(CenteredWidget):
         settings.audio['input'] = self.in_indexes[self.input.currentIndex()]
         settings.audio['output'] = self.out_indexes[self.output.currentIndex()]
         settings.save()
+
+
+class PluginsSettings(CenteredWidget):
+
+    def __init__(self):
+        super(PluginsSettings, self).__init__()
+        self.initUI()
+        self.center()
+
+    def initUI(self):
+        self.resize(400, 200)
+        self.setMinimumSize(QtCore.QSize(400, 200))
+        self.setMaximumSize(QtCore.QSize(400, 200))
+        self.comboBox = QtGui.QComboBox(self)
+        self.comboBox.setGeometry(QtCore.QRect(10, 30, 180, 27))
+        self.label = DataLabel(self)
+        self.label.setGeometry(QtCore.QRect(10, 60, 180, 60))
+        self.button = QtGui.QPushButton(self)
+        self.button.setGeometry(QtCore.QRect(10, 130, 180, 30))
+        self.button.clicked.connect(self.button_click)
+        self.pl_loader = plugin_support.PluginLoader.get_instance()
+        self.update_list()
+        self.comboBox.currentIndexChanged.connect(self.show_data)
+        self.show_data()
+
+    def update_list(self):
+        self.comboBox.clear()
+        data = self.pl_loader.get_plugins_list()
+        self.comboBox.addItems(map(lambda x: x[0], data))
+        self.data = data
+
+    def show_data(self):
+        ind = self.comboBox.currentIndex()
+        plugin = self.data[ind]
+        self.label.setText(plugin[2])
+        if plugin[1]:
+            self.button.setText(QtGui.QApplication.translate("interfaceForm", "Disable plugin", None, QtGui.QApplication.UnicodeUTF8))
+        else:
+            self.button.setText(QtGui.QApplication.translate("interfaceForm", "Enable plugin", None, QtGui.QApplication.UnicodeUTF8))
+
+    def button_click(self):
+        ind = self.comboBox.currentIndex()
+        plugin = self.data[ind]
+        self.pl_loader.toggle_plugin(plugin[-1])
+        plugin[-1] = not plugin[-1]
+        if plugin[1]:
+            self.button.setText(QtGui.QApplication.translate("interfaceForm", "Disable plugin", None, QtGui.QApplication.UnicodeUTF8))
+        else:
+            self.button.setText(QtGui.QApplication.translate("interfaceForm", "Enable plugin", None, QtGui.QApplication.UnicodeUTF8))

@@ -48,12 +48,16 @@ class MainWindow(QtGui.QMainWindow):
         self.menubar.setMinimumSize(self.width(), 25)
         self.menubar.setMaximumSize(self.width(), 25)
         self.menubar.setBaseSize(self.width(), 25)
+
         self.menuProfile = QtGui.QMenu(self.menubar)
         self.menuProfile.setObjectName("menuProfile")
         self.menuSettings = QtGui.QMenu(self.menubar)
         self.menuSettings.setObjectName("menuSettings")
+        self.menuPlugins = QtGui.QMenu(self.menubar)
+        self.menuPlugins.setObjectName("menuPlugins")
         self.menuAbout = QtGui.QMenu(self.menubar)
         self.menuAbout.setObjectName("menuAbout")
+
         self.actionAdd_friend = QtGui.QAction(MainWindow)
         self.actionAdd_friend.setObjectName("actionAdd_friend")
         self.actionProfile_settings = QtGui.QAction(MainWindow)
@@ -71,6 +75,7 @@ class MainWindow(QtGui.QMainWindow):
         self.actionSettings = QtGui.QAction(MainWindow)
         self.actionSettings.setObjectName("actionSettings")
         self.audioSettings = QtGui.QAction(MainWindow)
+        self.pluginData = QtGui.QAction(MainWindow)
         self.menuProfile.addAction(self.actionAdd_friend)
         self.menuProfile.addAction(self.actionSettings)
         self.menuSettings.addAction(self.actionPrivacy_settings)
@@ -78,9 +83,11 @@ class MainWindow(QtGui.QMainWindow):
         self.menuSettings.addAction(self.actionNotifications)
         self.menuSettings.addAction(self.actionNetwork)
         self.menuSettings.addAction(self.audioSettings)
+        self.menuPlugins.addAction(self.pluginData)
         self.menuAbout.addAction(self.actionAbout_program)
         self.menubar.addAction(self.menuProfile.menuAction())
         self.menubar.addAction(self.menuSettings.menuAction())
+        self.menubar.addAction(self.menuPlugins.menuAction())
         self.menubar.addAction(self.menuAbout.menuAction())
 
         self.actionAbout_program.triggered.connect(self.about_program)
@@ -91,12 +98,15 @@ class MainWindow(QtGui.QMainWindow):
         self.actionInterface_settings.triggered.connect(self.interface_settings)
         self.actionNotifications.triggered.connect(self.notification_settings)
         self.audioSettings.triggered.connect(self.audio_settings)
+        self.pluginData.triggered.connect(self.plugins_menu)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def languageChange(self, *args, **kwargs):
         self.retranslateUi()
 
     def retranslateUi(self):
+        self.menuPlugins.setTitle(QtGui.QApplication.translate("MainWindow", "Plugins", None, QtGui.QApplication.UnicodeUTF8))
+        self.pluginData.setText(QtGui.QApplication.translate("MainWindow", "Info", None, QtGui.QApplication.UnicodeUTF8))
         self.menuProfile.setTitle(QtGui.QApplication.translate("MainWindow", "Profile", None, QtGui.QApplication.UnicodeUTF8))
         self.menuSettings.setTitle(QtGui.QApplication.translate("MainWindow", "Settings", None, QtGui.QApplication.UnicodeUTF8))
         self.menuAbout.setTitle(QtGui.QApplication.translate("MainWindow", "About", None, QtGui.QApplication.UnicodeUTF8))
@@ -357,6 +367,10 @@ class MainWindow(QtGui.QMainWindow):
     def network_settings(self):
         self.n_s = NetworkSettings(self.reset)
         self.n_s.show()
+
+    def plugins_menu(self):
+        self.p_s = PluginsSettings()
+        self.p_s.show()
 
     def add_contact(self):
         self.a_c = AddContact()

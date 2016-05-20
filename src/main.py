@@ -11,6 +11,7 @@ import styles.style
 import locale
 import toxencryptsave
 from passwordscreen import PasswordScreen
+from plugin_support import PluginLoader
 
 
 class Toxygen(object):
@@ -154,6 +155,9 @@ class Toxygen(object):
         self.ms.show()
         QtGui.QApplication.setStyle(get_style(settings['theme']))  # set application style
 
+        plugin_helper = PluginLoader(self.tox, settings)  # plugin support
+        plugin_helper.load()
+
         # init thread
         self.init = self.InitThread(self.tox, self.ms, self.tray)
         self.init.start()
@@ -163,6 +167,7 @@ class Toxygen(object):
         self.mainloop.start()
         self.avloop = self.ToxAVIterateThread(self.tox.AV)
         self.avloop.start()
+
         app.connect(app, QtCore.SIGNAL("lastWindowClosed()"), app, QtCore.SLOT("quit()"))
         app.exec_()
         self.init.stop = True
