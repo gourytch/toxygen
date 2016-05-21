@@ -57,9 +57,9 @@ class PluginLoader(util.Singleton):
             print name
             if name in self._plugins:
                 if is_lossless:
-                    self._plugins[name].lossless_packet(''.join(chr(x) for x in data[l + 1:length]), friend_number)
+                    self._plugins[name][0].lossless_packet(''.join(chr(x) for x in data[l + 1:length]), friend_number)
                 else:
-                    self._plugins[name].lossy_packet(''.join(chr(x) for x in data[l + 1:length]), friend_number)
+                    self._plugins[name][0].lossy_packet(''.join(chr(x) for x in data[l + 1:length]), friend_number)
         return wrapped
 
     def get_plugins_list(self):
@@ -95,3 +95,9 @@ class PluginLoader(util.Singleton):
         else:
             self._settings['plugins'].remove(key)
         self._settings.save()
+
+    def command(self, text):
+        text = text.strip()
+        name = text.split()[0]
+        if name in self._plugins:
+            self._plugins[name][0].command(text[len(name) + 1:])
