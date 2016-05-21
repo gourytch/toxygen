@@ -621,7 +621,18 @@ class PluginsSettings(CenteredWidget):
         self.open.setText(QtGui.QApplication.translate('PluginsForm', "Open selected plugin", None, QtGui.QApplication.UnicodeUTF8))
 
     def open_plugin(self):
-        pass
+        ind = self.comboBox.currentIndex()
+        plugin = self.data[ind]
+        window = self.pl_loader.plugin_window(plugin[-1])
+        if window is not None:
+            self.window = window
+            self.window.show()
+        else:
+            msgBox = QtGui.QMessageBox()
+            text = (QtGui.QApplication.translate("PluginsForm", 'No GUI found for this plugin', None,
+                                                 QtGui.QApplication.UnicodeUTF8))
+            msgBox.setText(text)
+            msgBox.exec_()
 
     def update_list(self):
         self.comboBox.clear()
@@ -632,7 +643,8 @@ class PluginsSettings(CenteredWidget):
     def show_data(self):
         ind = self.comboBox.currentIndex()
         plugin = self.data[ind]
-        self.label.setText(plugin[2])
+        descr = plugin[2] or QtGui.QApplication.translate("PluginsForm", "No description available", None, QtGui.QApplication.UnicodeUTF8)
+        self.label.setText(descr)
         if plugin[1]:
             self.button.setText(QtGui.QApplication.translate("PluginsForm", "Disable plugin", None, QtGui.QApplication.UnicodeUTF8))
         else:
