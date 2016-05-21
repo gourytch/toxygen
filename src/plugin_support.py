@@ -35,11 +35,13 @@ class PluginLoader(util.Singleton):
                     print elem
                     try:
                         inst = obj(self._tox, self._profile, self._settings)
-                        inst.start()  # TODO: check settings
+                        autostart = inst.get_short_name() in self._settings['plugins']
+                        if autostart:
+                            inst.start()  # TODO: check settings
                     except Exception as ex:
                         util.log('Exception in module ' + name + ' Exception: ' + str(ex))
                         continue
-                    self._plugins[inst.get_short_name()] = [inst, True]  # (inst, is active)
+                    self._plugins[inst.get_short_name()] = [inst, autostart]  # (inst, is active)
                     break
 
     def callback_custom_packet(self, is_lossless=True):
@@ -56,10 +58,10 @@ class PluginLoader(util.Singleton):
 
     def get_plugins_list(self):
         result = []
-        for key in sorted(self._plugins):
+        for key in sorted(self._plugins, key=lambda x: x[0]):
             data = self._plugins[key]
-            print data[0]  # TODO: use get_desr instead of __doc__
-            result.append([data[0].get_name(), data[1], data[0].__doc__ or '', data[0].get_short_name()])
+            print data[0]
+            result.append([data[0].get_name(), data[1], data[0].get_description() or '', data[0].get_short_name()])
         return result
 
     def toggle_plugin(self, key):
@@ -69,3 +71,8 @@ class PluginLoader(util.Singleton):
         else:
             plugin[0].start()
         plugin[1] = not plugin[1]
+        if plugin[1]:
+            self._settings['plugins'].append(key)
+        else:
+            self._settings['plugins'].remove(key)
+        self._settings.save()

@@ -3,8 +3,6 @@ import os
 
 MAX_SHORT_NAME_LENGTH = 5
 
-MAX_DATA_LENGTH = 1367
-
 LOSSY_FIRST_BYTE = 200
 
 LOSSLESS_FIRST_BYTE = 160
@@ -20,6 +18,8 @@ class PluginSuperClass(object):
         self._settings = settings
         self._profile = profile
         self._tox = tox
+        name = name.strip()
+        short_name = short_name.strip()
         if not name or not short_name:
             raise NameError('Wrong name or short name')
         self._name = name
@@ -38,7 +38,7 @@ class PluginSuperClass(object):
         pass
 
     def get_description(self):
-        return None
+        return self.__doc__
 
     def window(self):
         return None

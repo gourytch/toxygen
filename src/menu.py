@@ -595,22 +595,33 @@ class PluginsSettings(CenteredWidget):
         super(PluginsSettings, self).__init__()
         self.initUI()
         self.center()
+        self.retranslateUi()
 
     def initUI(self):
-        self.resize(400, 200)
-        self.setMinimumSize(QtCore.QSize(400, 200))
-        self.setMaximumSize(QtCore.QSize(400, 200))
+        self.resize(400, 210)
+        self.setMinimumSize(QtCore.QSize(400, 210))
+        self.setMaximumSize(QtCore.QSize(400, 210))
         self.comboBox = QtGui.QComboBox(self)
-        self.comboBox.setGeometry(QtCore.QRect(10, 30, 180, 27))
+        self.comboBox.setGeometry(QtCore.QRect(30, 30, 340, 30))
         self.label = DataLabel(self)
-        self.label.setGeometry(QtCore.QRect(10, 60, 180, 60))
+        self.label.setGeometry(QtCore.QRect(30, 60, 340, 60))
         self.button = QtGui.QPushButton(self)
-        self.button.setGeometry(QtCore.QRect(10, 130, 180, 30))
+        self.button.setGeometry(QtCore.QRect(30, 130, 340, 30))
         self.button.clicked.connect(self.button_click)
+        self.open = QtGui.QPushButton(self)
+        self.open.setGeometry(QtCore.QRect(30, 170, 340, 30))
+        self.open.clicked.connect(self.open_plugin)
         self.pl_loader = plugin_support.PluginLoader.get_instance()
         self.update_list()
         self.comboBox.currentIndexChanged.connect(self.show_data)
         self.show_data()
+
+    def retranslateUi(self):
+        self.setWindowTitle(QtGui.QApplication.translate('PluginsForm', "Plugins", None, QtGui.QApplication.UnicodeUTF8))
+        self.open.setText(QtGui.QApplication.translate('PluginsForm', "Open selected plugin", None, QtGui.QApplication.UnicodeUTF8))
+
+    def open_plugin(self):
+        pass
 
     def update_list(self):
         self.comboBox.clear()
@@ -623,16 +634,16 @@ class PluginsSettings(CenteredWidget):
         plugin = self.data[ind]
         self.label.setText(plugin[2])
         if plugin[1]:
-            self.button.setText(QtGui.QApplication.translate("interfaceForm", "Disable plugin", None, QtGui.QApplication.UnicodeUTF8))
+            self.button.setText(QtGui.QApplication.translate("PluginsForm", "Disable plugin", None, QtGui.QApplication.UnicodeUTF8))
         else:
-            self.button.setText(QtGui.QApplication.translate("interfaceForm", "Enable plugin", None, QtGui.QApplication.UnicodeUTF8))
+            self.button.setText(QtGui.QApplication.translate("PluginsForm", "Enable plugin", None, QtGui.QApplication.UnicodeUTF8))
 
     def button_click(self):
         ind = self.comboBox.currentIndex()
         plugin = self.data[ind]
         self.pl_loader.toggle_plugin(plugin[-1])
-        plugin[-1] = not plugin[-1]
+        plugin[1] = not plugin[1]
         if plugin[1]:
-            self.button.setText(QtGui.QApplication.translate("interfaceForm", "Disable plugin", None, QtGui.QApplication.UnicodeUTF8))
+            self.button.setText(QtGui.QApplication.translate("PluginsForm", "Disable plugin", None, QtGui.QApplication.UnicodeUTF8))
         else:
-            self.button.setText(QtGui.QApplication.translate("interfaceForm", "Enable plugin", None, QtGui.QApplication.UnicodeUTF8))
+            self.button.setText(QtGui.QApplication.translate("PluginsForm", "Enable plugin", None, QtGui.QApplication.UnicodeUTF8))
