@@ -207,6 +207,10 @@ class Toxygen(object):
 
         self.avloop = self.ToxAVIterateThread(self.tox.AV)
         self.avloop.start()
+
+        plugin_helper = PluginLoader.get_instance()
+        plugin_helper.set_tox(self.tox)
+
         return self.tox
 
     # -----------------------------------------------------------------------------------------------------------------

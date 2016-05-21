@@ -14,6 +14,14 @@ class PluginLoader(util.Singleton):
         self._plugins = {}  # dict. key - plugin unique short name, value - tuple (plugin instance, is active)
         self._tox = tox
 
+    def set_tox(self, tox):
+        """
+        New tox instance
+        """
+        self._tox = tox
+        for key in self._plugins:
+            self._plugins[key].set_tox(tox)
+
     def load(self):
         """
         Load all plugins in plugins folder

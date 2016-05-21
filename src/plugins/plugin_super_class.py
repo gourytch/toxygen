@@ -15,8 +15,8 @@ def path_to_data(name):
 
 class PluginSuperClass(object):
     """
-    Superclass for all plugins. Plugin is python module. This module must contain
-    at least 1 class derived from this class.
+    Superclass for all plugins. Plugin is python module.
+    This module must contain at least one class derived from PluginSuperClass.
     """
 
     def __init__(self, name, short_name, tox=None, profile=None, settings=None):
@@ -36,7 +36,7 @@ class PluginSuperClass(object):
             raise NameError('Wrong name')
         self._name = name
         self._short_name = short_name[:MAX_SHORT_NAME_LENGTH]
-        self._translator = None
+        self._translator = None  # translator for plugin's GUI
 
     def get_name(self):
         """
@@ -83,7 +83,7 @@ class PluginSuperClass(object):
 
     def window(self):
         """
-        This method should return window for plugins with GUi or None
+        This method should return window for plugins with GUI or None
         """
         return None
 
@@ -121,7 +121,7 @@ class PluginSuperClass(object):
     def lossless_packet(self, data, friend_number):
         """
         Incoming lossless packet
-        :param data: raw data
+        :param data: string with data
         :param friend_number: number of friend who sent packet
         """
         pass
@@ -129,7 +129,7 @@ class PluginSuperClass(object):
     def lossy_packet(self, data, friend_number):
         """
         Incoming lossy packet
-        :param data: raw data
+        :param data: string with data
         :param friend_number: number of friend who sent packet
         """
         pass
