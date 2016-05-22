@@ -4,6 +4,7 @@ import os
 import imp
 import inspect
 import plugins.plugin_super_class as pl
+import toxencryptsave
 
 
 class PluginLoader(util.Singleton):
@@ -13,6 +14,7 @@ class PluginLoader(util.Singleton):
         self._settings = settings
         self._plugins = {}  # dict. key - plugin unique short name, value - tuple (plugin instance, is active)
         self._tox = tox
+        self._encr = toxencryptsave.LibToxEncryptSave.get_instance()
 
     def set_tox(self, tox):
         """
@@ -31,7 +33,7 @@ class PluginLoader(util.Singleton):
         for fl in files:
             if fl in ('plugin_super_class.py', '__init__.py') or not fl.endswith('.py'):
                 continue
-            name = fl[:-3] # module name without .py
+            name = fl[:-3]  # module name without .py
             try:
                 module = imp.load_source('plugins.' + name, path + fl)  # import plugin
             except ImportError:
@@ -45,7 +47,7 @@ class PluginLoader(util.Singleton):
                 if inspect.isclass(obj) and issubclass(obj, pl.PluginSuperClass):  # looking for plugin class in module
                     print elem
                     try:  # create instance of plugin class
-                        inst = obj(self._tox, self._profile, self._settings)
+                        inst = obj(self._tox, self._profile, self._settings, self._encr)
                         autostart = inst.get_short_name() in self._settings['plugins']
                         if autostart:
                             inst.start()
@@ -109,3 +111,10 @@ class PluginLoader(util.Singleton):
         name = text.split()[0]
         if name in self._plugins:
             self._plugins[name][0].command(text[len(name) + 1:])
+
+    def get_menu(self):
+        result = []
+        for elem in self._plugins.values():
+            if elem[1]:
+                result.extend(elem[0].right_click_menu())
+        return result

@@ -19,13 +19,14 @@ class PluginSuperClass(object):
     This module must contain at least one class derived from PluginSuperClass.
     """
 
-    def __init__(self, name, short_name, tox=None, profile=None, settings=None):
+    def __init__(self, name, short_name, tox=None, profile=None, settings=None, encrypt_save=None):
         """
         :param name: plugin full name
         :param short_name: plugin unique short name (length of short name should not exceed MAX_SHORT_NAME_LENGTH)
         :param tox: tox instance
         :param profile: profile instance
         :param settings: profile settings
+        :param encrypt_save: LibToxEncryptSave instance.
         """
         self._settings = settings
         self._profile = profile
@@ -37,6 +38,7 @@ class PluginSuperClass(object):
         self._name = name
         self._short_name = short_name[:MAX_SHORT_NAME_LENGTH]
         self._translator = None  # translator for plugin's GUI
+        self._encrypt_save = encrypt_save
 
     def get_name(self):
         """
@@ -70,10 +72,21 @@ class PluginSuperClass(object):
 
     def command(self, command):
         """
-        New command.
+        New command. On 'help' this method should provide user list of available commands
         :param command: string with command
         """
-        pass
+        msgBox = QtGui.QMessageBox()
+        title = QtGui.QApplication.translate("PluginWindow", "List of commands for plugin {}", None, QtGui.QApplication.UnicodeUTF8)
+        msgBox.setWindowTitle(title.format(self._name))
+        text = QtGui.QApplication.translate("PluginWindow", 'No commands available', None, QtGui.QApplication.UnicodeUTF8)
+        msgBox.setText(text)
+        msgBox.exec_()
+
+    def right_click_menu(self):
+        """
+        This method creates for menu which called on right click in list of friends
+        """
+        return []
 
     def get_description(self):
         """
@@ -106,7 +119,7 @@ class PluginSuperClass(object):
         """
         This method loads settings of plugin and returns raw data
         """
-        with open(path_to_data(self._short_name + 'settings.json')) as fl:
+        with open(path_to_data(self._short_name) + 'settings.json') as fl:
             data = fl.read()
         return data
 
@@ -115,7 +128,7 @@ class PluginSuperClass(object):
         This method saves plugin's settings to file
         :param data: string with data
         """
-        with open(path_to_data(self._short_name + 'settings.json')) as fl:
+        with open(path_to_data(self._short_name) + 'settings.json') as fl:
             fl.write(data)
 
     def lossless_packet(self, data, friend_number):
@@ -138,14 +151,26 @@ class PluginSuperClass(object):
         """
         This method sends lossless packet to friend
         Wrapper for self._tox.friend_send_lossless_packet
+        Use it instead of direct using self._tox.friend_send_lossless_packet
+        :return True on success
         """
-        self._tox.friend_send_lossless_packet(friend_number, chr(len(self._short_name) + LOSSLESS_FIRST_BYTE) +
-                                              self._short_name + str(data))
+        try:
+            return self._tox.friend_send_lossless_packet(friend_number,
+                                                         chr(len(self._short_name) + LOSSLESS_FIRST_BYTE) +
+                                                         self._short_name + str(data))
+        except:
+            return False
 
     def send_lossy(self, data, friend_number):
         """
         This method sends lossy packet to friend
         Wrapper for self._tox.friend_send_lossy_packet
+        Use it instead of direct using self._tox.friend_send_lossy_packet
+        :return True on success
         """
-        self._tox.friend_send_lossy_packet(friend_number, chr(len(self._short_name) + LOSSY_FIRST_BYTE) +
-                                           self._short_name + str(data))
+        try:
+            return self._tox.friend_send_lossy_packet(friend_number,
+                                                      chr(len(self._short_name) + LOSSY_FIRST_BYTE) +
+                                                      self._short_name + str(data))
+        except:
+            return False

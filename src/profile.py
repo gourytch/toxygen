@@ -379,6 +379,9 @@ class Profile(Contact, Singleton):
     def get_friend_by_number(self, num):
         return filter(lambda x: x.number == num, self._friends)[0]
 
+    def get_friend(self, num):
+        return self._friends[num]
+
     # -----------------------------------------------------------------------------------------------------------------
     # Work with active friend
     # -----------------------------------------------------------------------------------------------------------------

@@ -445,7 +445,7 @@ class MainWindow(QtGui.QMainWindow):
     def friend_right_click(self, pos):
         item = self.friends_list.itemAt(pos)
         num = self.friends_list.indexFromItem(item).row()
-        friend = Profile.get_instance().get_friend_by_number(num)
+        friend = Profile.get_instance().get_friend(num)
         settings = Settings.get_instance()
         allowed = friend.tox_id in settings['auto_accept_from_friends']
         auto = QtGui.QApplication.translate("MainWindow", 'Disallow auto accept', None, QtGui.QApplication.UnicodeUTF8) if allowed else QtGui.QApplication.translate("MainWindow", 'Allow auto accept', None, QtGui.QApplication.UnicodeUTF8)
