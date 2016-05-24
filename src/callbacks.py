@@ -218,13 +218,35 @@ def file_recv_control(tox, friend_number, file_number, file_control, user_data):
     elif file_control == TOX_FILE_CONTROL['RESUME']:
         Profile.get_instance().resume_transfer(friend_number, file_number, True)
 
+# -----------------------------------------------------------------------------------------------------------------
+# Callbacks - custom packets
+# -----------------------------------------------------------------------------------------------------------------
+
+
+def lossless_packet(tox, friend_number, data, length, user_data):
+    """
+    Incoming lossless packet
+    """
+    plugin = PluginLoader.get_instance()
+    invoke_in_main_thread(plugin.callback_lossless(friend_number, data, length))
+
+
+def lossy_packet(tox, friend_number, data, length, user_data):
+    """
+    Incoming lossy packet
+    """
+    plugin = PluginLoader.get_instance()
+    invoke_in_main_thread(plugin.callback_lossy(friend_number, data, length))
+
 
 # -----------------------------------------------------------------------------------------------------------------
 # Callbacks - audio
 # -----------------------------------------------------------------------------------------------------------------
 
 def call_state(toxav, friend_number, mask, user_data):
-    """New call state"""
+    """
+    New call state
+    """
     print friend_number, mask
     if mask == TOXAV_FRIEND_CALL_STATE['FINISHED'] or mask == TOXAV_FRIEND_CALL_STATE['ERROR']:
         invoke_in_main_thread(Profile.get_instance().stop_call, friend_number, True)
@@ -233,13 +255,17 @@ def call_state(toxav, friend_number, mask, user_data):
 
 
 def call(toxav, friend_number, audio, video, user_data):
-    """Incoming call from friend"""
+    """
+    Incoming call from friend
+    """
     print friend_number, audio, video
     invoke_in_main_thread(Profile.get_instance().incoming_call, audio, video, friend_number)
 
 
 def callback_audio(toxav, friend_number, samples, audio_samples_per_channel, audio_channels_count, rate, user_data):
-    """New audio chunk"""
+    """
+    New audio chunk
+    """
     print audio_samples_per_channel, audio_channels_count, rate
     Profile.get_instance().call.chunk(
         ''.join(chr(x) for x in samples[:audio_samples_per_channel * 2 * audio_channels_count]),
@@ -279,7 +305,6 @@ def init_callbacks(tox, window, tray):
     toxav.callback_call(call, 0)
     toxav.callback_audio_receive_frame(callback_audio, 0)
 
-    plugin = PluginLoader.get_instance()
-    tox.callback_friend_lossless_packet(plugin.callback_custom_packet(), 0)
-    tox.callback_friend_lossy_packet(plugin.callback_custom_packet(False), 0)
+    tox.callback_friend_lossless_packet(lossless_packet, 0)
+    tox.callback_friend_lossy_packet(lossy_packet, 0)
 

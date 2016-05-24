@@ -57,20 +57,23 @@ class PluginLoader(util.Singleton):
                     self._plugins[inst.get_short_name()] = [inst, autostart]  # (inst, is active)
                     break
 
-    def callback_custom_packet(self, is_lossless=True):
+    def callback_lossless(self, friend_number, data, length):
         """
-        New incoming custom packet (callback)
+        New incoming custom lossless packet (callback)
         """
-        def wrapped(tox, friend_number, data, length, user_data):
-            l = data[0] - pl.LOSSLESS_FIRST_BYTE if is_lossless else data[0] - pl.LOSSY_FIRST_BYTE
-            name = ''.join(chr(x) for x in data[1:l + 1])
-            print name
-            if name in self._plugins:
-                if is_lossless:
-                    self._plugins[name][0].lossless_packet(''.join(chr(x) for x in data[l + 1:length]), friend_number)
-                else:
-                    self._plugins[name][0].lossy_packet(''.join(chr(x) for x in data[l + 1:length]), friend_number)
-        return wrapped
+        l = data[0] - pl.LOSSLESS_FIRST_BYTE
+        name = ''.join(chr(x) for x in data[1:l + 1])
+        if name in self._plugins:
+            self._plugins[name][0].lossless_packet(''.join(chr(x) for x in data[l + 1:length]), friend_number)
+
+    def callback_lossy(self, friend_number, data, length):
+        """
+        New incoming custom lossy packet (callback)
+        """
+        l = data[0] - pl.LOSSY_FIRST_BYTE
+        name = ''.join(chr(x) for x in data[1:l + 1])
+        if name in self._plugins:
+            self._plugins[name][0].lossy_packet(''.join(chr(x) for x in data[l + 1:length]), friend_number)
 
     def get_plugins_list(self):
         """
