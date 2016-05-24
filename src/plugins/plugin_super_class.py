@@ -1,5 +1,8 @@
 import os
-from PySide import QtCore, QtGui
+try:
+    from PySide import QtCore, QtGui
+except ImportError:
+    from PyQt4 import QtCore, QtGui
 
 
 MAX_SHORT_NAME_LENGTH = 5
@@ -82,15 +85,16 @@ class PluginSuperClass(object):
         msgBox.setText(text)
         msgBox.exec_()
 
-    def right_click_menu(self):
+    def get_menu(self, menu):
         """
         This method creates for menu which called on right click in list of friends
+        :param: menu instance
         """
         return []
 
     def get_description(self):
         """
-        Return plugin description
+        Should return plugin description
         """
         return self.__doc__
 

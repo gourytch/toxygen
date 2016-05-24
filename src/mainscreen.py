@@ -4,6 +4,7 @@ from menu import *
 from profile import *
 from list_items import *
 from widgets import QRightClickButton
+import plugin_support
 
 
 class MessageArea(QtGui.QPlainTextEdit):
@@ -456,6 +457,10 @@ class MainWindow(QtGui.QMainWindow):
             copy_key_item = self.listMenu.addAction(QtGui.QApplication.translate("MainWindow", 'Copy public key', None, QtGui.QApplication.UnicodeUTF8))
             auto_accept_item = self.listMenu.addAction(auto)
             remove_item = self.listMenu.addAction(QtGui.QApplication.translate("MainWindow", 'Remove friend', None, QtGui.QApplication.UnicodeUTF8))
+            submenu = plugin_support.PluginLoader.get_instance().get_menu(self.listMenu)
+            if len(submenu):
+                plug = self.listMenu.addMenu(QtGui.QApplication.translate("MainWindow", 'Plugins', None, QtGui.QApplication.UnicodeUTF8))
+                plug.addActions(submenu)
             self.connect(set_alias_item, QtCore.SIGNAL("triggered()"), lambda: self.set_alias(num))
             self.connect(remove_item, QtCore.SIGNAL("triggered()"), lambda: self.remove_friend(num))
             self.connect(copy_key_item, QtCore.SIGNAL("triggered()"), lambda: self.copy_friend_key(num))

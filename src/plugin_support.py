@@ -112,9 +112,9 @@ class PluginLoader(util.Singleton):
         if name in self._plugins:
             self._plugins[name][0].command(text[len(name) + 1:])
 
-    def get_menu(self):
+    def get_menu(self, menu):
         result = []
         for elem in self._plugins.values():
             if elem[1]:
-                result.extend(elem[0].right_click_menu())
+                result.extend(elem[0].get_menu(menu))
         return result
