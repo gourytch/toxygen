@@ -75,13 +75,17 @@ class PluginLoader(util.Singleton):
         if name in self._plugins:
             self._plugins[name][0].lossy_packet(''.join(chr(x) for x in data[l + 1:length]), friend_number)
 
+    def friend_online(self, friend_number):
+        for elem in self._plugins.values():
+            if elem[1]:
+                elem[0].friend_connected(friend_number)
+
     def get_plugins_list(self):
         """
         Returns list of all plugins
         """
         result = []
-        for key in self._plugins:
-            data = self._plugins[key]
+        for data in self._plugins.values():
             print data[0]
             result.append([data[0].get_name(),
                            data[1],

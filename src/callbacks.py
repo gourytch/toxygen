@@ -82,6 +82,7 @@ def friend_connection_status(tox, friend_num, new_status, user_data):
             sound_notification(SOUND_NOTIFICATION['FRIEND_CONNECTION_STATUS'])
     elif friend.status is None:
         invoke_in_main_thread(profile.send_avatar, friend_num)
+        PluginLoader.get_instance().friend_online(friend_num)
 
 
 def friend_name(tox, friend_num, name, size, user_data):

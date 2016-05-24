@@ -151,6 +151,12 @@ class PluginSuperClass(object):
         """
         pass
 
+    def friend_connected(self, friend_number):
+        """
+        Friend with specified number is online now
+        """
+        pass
+
     def send_lossless(self, data, friend_number):
         """
         This method sends lossless packet to friend
