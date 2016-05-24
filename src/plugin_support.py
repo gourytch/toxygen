@@ -94,7 +94,7 @@ class PluginLoader(util.Singleton):
         return result
 
     def plugin_window(self, key):
-        return self._plugins[key][0].window()
+        return self._plugins[key][0].get_window()
 
     def toggle_plugin(self, key):
         """
@@ -119,9 +119,9 @@ class PluginLoader(util.Singleton):
         if name in self._plugins:
             self._plugins[name][0].command(text[len(name) + 1:])
 
-    def get_menu(self, menu):
+    def get_menu(self, menu, num):
         result = []
         for elem in self._plugins.values():
             if elem[1]:
-                result.extend(elem[0].get_menu(menu))
+                result.extend(elem[0].get_menu(menu, num))
         return result

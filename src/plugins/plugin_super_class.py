@@ -43,6 +43,10 @@ class PluginSuperClass(object):
         self._translator = None  # translator for plugin's GUI
         self._encrypt_save = encrypt_save
 
+    # -----------------------------------------------------------------------------------------------------------------
+    # Get methods
+    # -----------------------------------------------------------------------------------------------------------------
+
     def get_name(self):
         """
         :return plugin full name
@@ -55,11 +59,36 @@ class PluginSuperClass(object):
         """
         return self._short_name
 
+    def get_description(self):
+        """
+        Should return plugin description
+        """
+        return self.__doc__
+
+    def get_menu(self, menu, row_number):
+        """
+        This method creates items for menu which called on right click in list of friends
+        :param menu: menu instance
+        :param row_number: number of selected row in list of contacts
+        :return list of QAction's
+        """
+        return []
+
+    def get_window(self):
+        """
+        This method should return window for plugins with GUI or None
+        """
+        return None
+
     def set_tox(self, tox):
         """
         New tox instance
         """
         self._tox = tox
+
+    # -----------------------------------------------------------------------------------------------------------------
+    # Plugin was stopped, started or new command received
+    # -----------------------------------------------------------------------------------------------------------------
 
     def start(self):
         """
@@ -78,31 +107,16 @@ class PluginSuperClass(object):
         New command. On 'help' this method should provide user list of available commands
         :param command: string with command
         """
-        msgBox = QtGui.QMessageBox()
+        msgbox = QtGui.QMessageBox()
         title = QtGui.QApplication.translate("PluginWindow", "List of commands for plugin {}", None, QtGui.QApplication.UnicodeUTF8)
-        msgBox.setWindowTitle(title.format(self._name))
+        msgbox.setWindowTitle(title.format(self._name))
         text = QtGui.QApplication.translate("PluginWindow", 'No commands available', None, QtGui.QApplication.UnicodeUTF8)
-        msgBox.setText(text)
-        msgBox.exec_()
+        msgbox.setText(text)
+        msgbox.exec_()
 
-    def get_menu(self, menu):
-        """
-        This method creates for menu which called on right click in list of friends
-        :param: menu instance
-        """
-        return []
-
-    def get_description(self):
-        """
-        Should return plugin description
-        """
-        return self.__doc__
-
-    def window(self):
-        """
-        This method should return window for plugins with GUI or None
-        """
-        return None
+    # -----------------------------------------------------------------------------------------------------------------
+    # Translations support
+    # -----------------------------------------------------------------------------------------------------------------
 
     def load_translator(self):
         """
@@ -119,6 +133,10 @@ class PluginSuperClass(object):
             self._translator.load(path_to_data(self._short_name) + lang_path)
             app.installTranslator(self._translator)
 
+    # -----------------------------------------------------------------------------------------------------------------
+    # Settings loading and saving
+    # -----------------------------------------------------------------------------------------------------------------
+
     def load_settings(self):
         """
         This method loads settings of plugin and returns raw data
@@ -134,6 +152,10 @@ class PluginSuperClass(object):
         """
         with open(path_to_data(self._short_name) + 'settings.json') as fl:
             fl.write(data)
+
+    # -----------------------------------------------------------------------------------------------------------------
+    # Callbacks
+    # -----------------------------------------------------------------------------------------------------------------
 
     def lossless_packet(self, data, friend_number):
         """
@@ -156,6 +178,10 @@ class PluginSuperClass(object):
         Friend with specified number is online now
         """
         pass
+
+    # -----------------------------------------------------------------------------------------------------------------
+    # Custom packets sending
+    # -----------------------------------------------------------------------------------------------------------------
 
     def send_lossless(self, data, friend_number):
         """
