@@ -309,8 +309,8 @@ class NetworkSettings(CenteredWidget):
             # recreate tox instance
             Profile.get_instance().reset(self.reset)
             self.close()
-        except:
-            pass
+        except Exception as ex:
+            log('Exception in restart: ' + str(ex))
 
 
 class PrivacySettings(CenteredWidget):

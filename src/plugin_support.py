@@ -21,8 +21,8 @@ class PluginLoader(util.Singleton):
         New tox instance
         """
         self._tox = tox
-        for key in self._plugins:
-            self._plugins[key].set_tox(tox)
+        for value in self._plugins.values():
+            value[0].set_tox(tox)
 
     def load(self):
         """

@@ -150,7 +150,7 @@ class PluginSuperClass(object):
         This method saves plugin's settings to file
         :param data: string with data
         """
-        with open(path_to_data(self._short_name) + 'settings.json') as fl:
+        with open(path_to_data(self._short_name) + 'settings.json', 'wb') as fl:
             fl.write(data)
 
     # -----------------------------------------------------------------------------------------------------------------
@@ -190,6 +190,8 @@ class PluginSuperClass(object):
         Use it instead of direct using self._tox.friend_send_lossless_packet
         :return True on success
         """
+        if data is None:
+            data = ''
         try:
             return self._tox.friend_send_lossless_packet(friend_number,
                                                          chr(len(self._short_name) + LOSSLESS_FIRST_BYTE) +
