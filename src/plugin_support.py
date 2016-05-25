@@ -123,5 +123,8 @@ class PluginLoader(util.Singleton):
         result = []
         for elem in self._plugins.values():
             if elem[1]:
-                result.extend(elem[0].get_menu(menu, num))
+                try:
+                    result.extend(elem[0].get_menu(menu, num))
+                except:
+                    continue
         return result
