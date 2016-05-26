@@ -108,17 +108,14 @@ class PluginSuperClass(object):
         :param command: string with command
         """
         msgbox = QtGui.QMessageBox()
-        title = self.translate("List of commands for plugin {}")
+        title = QtGui.QApplication.translate("PluginWindow", "List of commands for plugin {}", None, QtGui.QApplication.UnicodeUTF8)
         msgbox.setWindowTitle(title.format(self._name))
-        msgbox.setText(self.translate('No commands available'))
+        msgbox.setText(QtGui.QApplication.translate("PluginWindow", "No commands available", None, QtGui.QApplication.UnicodeUTF8))
         msgbox.exec_()
 
     # -----------------------------------------------------------------------------------------------------------------
     # Translations support
     # -----------------------------------------------------------------------------------------------------------------
-
-    def translate(self, s):
-        return QtGui.QApplication.translate("PluginWindow", s, None, QtGui.QApplication.UnicodeUTF8)
 
     def load_translator(self):
         """
