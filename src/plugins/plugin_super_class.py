@@ -13,13 +13,16 @@ LOSSLESS_FIRST_BYTE = 160
 
 
 def path_to_data(name):
+    """
+    :param name: plugin unique name
+    :return path do plugin's directory
+    """
     return os.path.dirname(os.path.realpath(__file__)) + '/' + name + '/'
 
 
 class PluginSuperClass(object):
     """
-    Superclass for all plugins. Plugin is python module.
-    This module must contain at least one class derived from PluginSuperClass.
+    Superclass for all plugins. Plugin is python module with at least one class derived from PluginSuperClass.
     """
 
     def __init__(self, name, short_name, tox=None, profile=None, settings=None, encrypt_save=None):
@@ -205,6 +208,8 @@ class PluginSuperClass(object):
         Use it instead of direct using self._tox.friend_send_lossy_packet
         :return True on success
         """
+        if data is None:
+            data = ''
         try:
             return self._tox.friend_send_lossy_packet(friend_number,
                                                       chr(len(self._short_name) + LOSSY_FIRST_BYTE) +

@@ -45,7 +45,7 @@ class PluginLoader(util.Singleton):
             for elem in dir(module):
                 obj = getattr(module, elem)
                 if inspect.isclass(obj) and issubclass(obj, pl.PluginSuperClass):  # looking for plugin class in module
-                    print elem
+                    print 'Plugin', elem
                     try:  # create instance of plugin class
                         inst = obj(self._tox, self._profile, self._settings, self._encr)
                         autostart = inst.get_short_name() in self._settings['plugins']
@@ -63,7 +63,7 @@ class PluginLoader(util.Singleton):
         """
         l = data[0] - pl.LOSSLESS_FIRST_BYTE
         name = ''.join(chr(x) for x in data[1:l + 1])
-        if name in self._plugins:
+        if name in self._plugins and self._plugins[name][1]:
             self._plugins[name][0].lossless_packet(''.join(chr(x) for x in data[l + 1:length]), friend_number)
 
     def callback_lossy(self, friend_number, data, length):
@@ -72,7 +72,7 @@ class PluginLoader(util.Singleton):
         """
         l = data[0] - pl.LOSSY_FIRST_BYTE
         name = ''.join(chr(x) for x in data[1:l + 1])
-        if name in self._plugins:
+        if name in self._plugins and self._plugins[name][1]:
             self._plugins[name][0].lossy_packet(''.join(chr(x) for x in data[l + 1:length]), friend_number)
 
     def friend_online(self, friend_number):
@@ -86,14 +86,16 @@ class PluginLoader(util.Singleton):
         """
         result = []
         for data in self._plugins.values():
-            print data[0]
-            result.append([data[0].get_name(),
-                           data[1],
-                           data[0].get_description(),
-                           data[0].get_short_name()])
+            result.append([data[0].get_name(),  # plugin full name
+                           data[1],  # is enabled
+                           data[0].get_description(),  # plugin description
+                           data[0].get_short_name()])  # key - short unique name
         return result
 
     def plugin_window(self, key):
+        """
+        Return window or None for specified plugin
+        """
         return self._plugins[key][0].get_window()
 
     def toggle_plugin(self, key):
@@ -114,12 +116,18 @@ class PluginLoader(util.Singleton):
         self._settings.save()
 
     def command(self, text):
+        """
+        New command for plugin
+        """
         text = text.strip()
         name = text.split()[0]
-        if name in self._plugins:
+        if name in self._plugins and self._plugins[name][1]:
             self._plugins[name][0].command(text[len(name) + 1:])
 
     def get_menu(self, menu, num):
+        """
+        Return list of items for menu
+        """
         result = []
         for elem in self._plugins.values():
             if elem[1]:
