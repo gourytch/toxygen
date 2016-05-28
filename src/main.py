@@ -173,6 +173,7 @@ class Toxygen(object):
         self.init.stop = True
         self.mainloop.stop = True
         self.avloop.stop = True
+        plugin_helper.stop()
         self.mainloop.wait()
         self.init.wait()
         self.avloop.wait()

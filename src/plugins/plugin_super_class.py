@@ -105,6 +105,12 @@ class PluginSuperClass(object):
         """
         pass
 
+    def close(self):
+        """
+        App is closing
+        """
+        pass
+
     def command(self, command):
         """
         New command. On 'help' this method should provide user list of available commands

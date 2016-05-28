@@ -136,3 +136,11 @@ class PluginLoader(util.Singleton):
                 except:
                     continue
         return result
+
+    def stop(self):
+        """
+        App is closing, stop all plugins
+        """
+        for key in self._plugins.keys():
+            self._plugins[key][0].close()
+            del self._plugins[key]
